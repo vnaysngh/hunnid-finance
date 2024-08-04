@@ -1,8 +1,17 @@
+import { createWallet } from "thirdweb/wallets";
 import { client } from "./client";
-import { ConnectButton as ConnectWallet } from "thirdweb/react";
+import { ConnectButton } from "thirdweb/react";
+import { base } from "thirdweb/chains";
 
 const Wallet = () => {
-  return <ConnectWallet client={client} />;
+  return (
+    <ConnectButton
+      wallets={[createWallet("io.metamask")]}
+      theme="light"
+      chain={base}
+      client={client}
+    />
+  );
 };
 
 export default Wallet;
