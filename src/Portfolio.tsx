@@ -124,8 +124,6 @@ const TokenItem = styled.tr`
 `;
 
 const PortfolioDashboard = () => {
-  const { account, connected } = useSDK();
-
   const tokens = [
     {
       name: "BRETT",
@@ -169,7 +167,7 @@ const PortfolioDashboard = () => {
     <DashboardContainer>
       <Header>
         <Logo>Portfolio Dashboard</Logo>
-        <Wallet connected={connected} account={account} />
+        <Wallet />
       </Header>
 
       <AccountValue>
