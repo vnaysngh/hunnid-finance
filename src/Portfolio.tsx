@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import Wallet from "./Wallet";
+import { useSDK } from "@metamask/sdk-react";
 
 const DashboardContainer = styled.div`
   min-height: 100vh;
@@ -53,7 +54,7 @@ const AccountValue = styled.div`
   color: #ffffff;
 `;
 
-const AccountChange = styled.span<{ negative?: boolean }>`
+const AccountChange = styled.span<{ negative?: string }>`
   color: ${(props) => (props?.negative ? "#ff4136" : "#2ecc40")};
   font-size: 16px;
 `;
@@ -123,6 +124,8 @@ const TokenItem = styled.tr`
 `;
 
 const PortfolioDashboard = () => {
+  const { account, connected } = useSDK();
+
   const tokens = [
     {
       name: "BRETT",
@@ -166,12 +169,12 @@ const PortfolioDashboard = () => {
     <DashboardContainer>
       <Header>
         <Logo>Portfolio Dashboard</Logo>
-        <Wallet />
+        <Wallet connected={connected} account={account} />
       </Header>
 
       <AccountValue>
         $308.68
-        <AccountChange negative>-$30.65 (-9.93%)</AccountChange>
+        <AccountChange negative="true">-$30.65 (-9.93%)</AccountChange>
       </AccountValue>
 
       <Table>

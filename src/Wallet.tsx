@@ -1,5 +1,4 @@
 import { useSDK } from "@metamask/sdk-react";
-import React, { useState } from "react";
 import styled from "styled-components";
 
 const AccountInfo = styled.div`
@@ -23,8 +22,13 @@ const ConnectButton = styled.button`
   }
 `;
 
-const Wallet = () => {
-  const { sdk, connected, account } = useSDK();
+type WalletProps = {
+  connected: boolean;
+  account: string | undefined;
+};
+
+const Wallet = ({ connected, account }: WalletProps) => {
+  const { sdk } = useSDK();
 
   const connect = async () => {
     try {
@@ -41,7 +45,6 @@ const Wallet = () => {
       console.warn("failed to connect..", err);
     }
   };
-
   return (
     <div className="App">
       {connected && account ? (
