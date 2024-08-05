@@ -1,5 +1,16 @@
-import { useState } from "react";
+import { Alchemy, Network } from "alchemy-sdk";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
+
+const baseURL = `https://eth-mainnet.g.alchemy.com/v2/${
+  import.meta.env.VITE_ALCHEMY_ACCESS_KEY
+}`;
+
+const config = {
+  apiKey: import.meta.env.VITE_ALCHEMY_ACCESS_KEY,
+  network: Network.BASE_SEPOLIA
+};
+const alchemy = new Alchemy(config);
 
 const Container = styled.div`
   width: 80vw;
@@ -124,6 +135,46 @@ const CoinIcon = styled.span`
 
 const LoanBorrowingInterface = () => {
   const [term, setTerm] = useState("7 Days");
+
+  useEffect(() => {
+    const getBalances = async () => {
+      try {
+        // Wallet address
+        const address = "0x0B95ec21579aee6Ef7b712976bD86689D68b5A08";
+
+        // Get token balances
+        const balances = await alchemy.core.getTokenBalances(address);
+
+        // Remove tokens with zero balance
+        const nonZeroBalances = balances.tokenBalances.filter((token) => {
+          return token.tokenBalance !== "0";
+        });
+
+        // Counter for SNo of final output
+        let i = 1;
+
+        // Loop through all tokens with non-zero balance
+        for (let token of nonZeroBalances) {
+          // Get balance of token
+          let balance: any = token.tokenBalance;
+
+          // Get metadata of token
+          const metadata = await alchemy.core.getTokenMetadata(
+            token.contractAddress
+          );
+
+          // Compute token balance in human-readable format
+          balance =
+            metadata.decimals && balance / Math.pow(10, metadata.decimals);
+          balance = balance.toFixed(2);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getBalances();
+  }, []);
 
   return (
     <Container>

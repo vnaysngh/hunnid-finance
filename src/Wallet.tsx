@@ -1,7 +1,7 @@
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { client } from "./client";
 import { ConnectButton } from "thirdweb/react";
-import { base } from "thirdweb/chains";
+import { base, baseSepolia } from "thirdweb/chains";
 
 const wallets = [
   createWallet("io.metamask"),
@@ -17,7 +17,7 @@ const Wallet = () => {
     <ConnectButton
       wallets={wallets}
       theme="light"
-      chain={base}
+      chains={[base, baseSepolia]}
       client={client}
     />
   );

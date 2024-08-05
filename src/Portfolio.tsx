@@ -1,7 +1,5 @@
-import React from "react";
 import styled from "styled-components";
 import Wallet from "./Wallet";
-import { useSDK } from "@metamask/sdk-react";
 
 const DashboardContainer = styled.div`
   min-height: 100vh;
