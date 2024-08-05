@@ -16,7 +16,6 @@ const Wallet = () => {
   return (
     <ConnectButton
       wallets={wallets}
-      theme="light"
       chains={[base, baseSepolia]}
       client={client}
     />
