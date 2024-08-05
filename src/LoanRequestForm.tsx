@@ -1,19 +1,20 @@
-import { Alchemy, Network } from "alchemy-sdk";
+import { Alchemy, Network, Utils } from "alchemy-sdk";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-
-const baseURL = `https://eth-mainnet.g.alchemy.com/v2/${
-  import.meta.env.VITE_ALCHEMY_ACCESS_KEY
-}`;
+import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
+import ethereum from "./assets/ethereum.png";
+import { useWalletBalance } from "thirdweb/react";
+import { client } from "./client";
+import axios from "axios";
 
 const config = {
   apiKey: import.meta.env.VITE_ALCHEMY_ACCESS_KEY,
-  network: Network.BASE_SEPOLIA
+  network: Network.BASE_MAINNET
 };
 const alchemy = new Alchemy(config);
 
 const Container = styled.div`
-  width: 80vw;
+  width: 50vw;
   height: 80vh;
   margin: 0 auto;
   padding: 2vh 2vw;
@@ -70,8 +71,8 @@ const Input = styled.input`
   font-size: 2vh;
 `;
 
-const Select = styled.select`
-  padding: 1vh 2.5vw 1vh 1vw;
+const Select = styled.div`
+  padding: 1vh;
   border: none;
   border-left: 1px solid #ddd;
   background-color: #fff;
@@ -79,10 +80,8 @@ const Select = styled.select`
   font-family: "Poppins";
   font-size: 2vh;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.7vw top 50%;
-  background-size: 1.5vh auto;
+  display: flex;
+  justify-content: space-between;
 `;
 
 const TermButtons = styled.div`
@@ -125,56 +124,60 @@ const StartButton = styled.button`
 `;
 
 const CoinIcon = styled.span`
-  background-color: #4a90e2;
-  color: white;
-  border-radius: 50%;
-  padding: 0.2vh 0.4vw;
-  font-size: 1.5vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-right: 0.5vw;
+`;
+
+const TokenBalance = styled.div`
+  display: flex;
+  justify-content: end;
+  margin-top: 0.5vh;
 `;
 
 const LoanBorrowingInterface = () => {
   const [term, setTerm] = useState("7 Days");
+  const [USDPrice, setUSDPrice] = useState<number | null>(null);
+  const activeAccount = useActiveAccount();
+  const activeChain = useActiveWalletChain();
+
+  const { data: eth_walletBalance } = useWalletBalance({
+    chain: activeChain,
+    address: activeAccount?.address,
+    client: client
+  });
+
+  const { data: usdc_walletBalance } = useWalletBalance({
+    chain: activeChain,
+    address: activeAccount?.address,
+    client: client,
+    tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  });
 
   useEffect(() => {
-    const getBalances = async () => {
+    const getUSDBalance = async () => {
       try {
-        // Wallet address
-        const address = "0x0B95ec21579aee6Ef7b712976bD86689D68b5A08";
+        const response = await axios.get(
+          "https://api.portals.fi/v2/tokens?search=eth&platforms=native&networks=base",
+          {
+            headers: {
+              authorization: import.meta.env.VITE_PORTALS_API_KEY
+            }
+          }
+        );
 
-        // Get token balances
-        const balances = await alchemy.core.getTokenBalances(address);
-
-        // Remove tokens with zero balance
-        const nonZeroBalances = balances.tokenBalances.filter((token) => {
-          return token.tokenBalance !== "0";
-        });
-
-        // Counter for SNo of final output
-        let i = 1;
-
-        // Loop through all tokens with non-zero balance
-        for (let token of nonZeroBalances) {
-          // Get balance of token
-          let balance: any = token.tokenBalance;
-
-          // Get metadata of token
-          const metadata = await alchemy.core.getTokenMetadata(
-            token.contractAddress
-          );
-
-          // Compute token balance in human-readable format
-          balance =
-            metadata.decimals && balance / Math.pow(10, metadata.decimals);
-          balance = balance.toFixed(2);
-        }
-      } catch (error) {
-        console.log(error);
+        const eth_usd_price =
+          response.data?.tokens[0].price *
+          Number(eth_walletBalance?.displayValue);
+        setUSDPrice(eth_usd_price);
+      } catch (e) {
+        console.log(e);
       }
     };
 
-    getBalances();
-  }, []);
+    if (eth_walletBalance?.displayValue) getUSDBalance();
+  }, [eth_walletBalance]);
 
   return (
     <Container>
@@ -183,26 +186,42 @@ const LoanBorrowingInterface = () => {
         <InputSection>
           <InputGroup>
             <Label>I want to borrow</Label>
+
             <InputSelectWrapper>
-              <Input type="number" defaultValue="100" />
+              <Input type="number" defaultValue="0.24789545" />
               <Select>
-                <option>
-                  <CoinIcon>$</CoinIcon>BUSD
-                </option>
+                <CoinIcon>
+                  {" "}
+                  <img src="/usdc.png" width={32} height={32} />
+                </CoinIcon>
+                USDC
               </Select>
             </InputSelectWrapper>
+            <TokenBalance>
+              {usdc_walletBalance
+                ? `Balance: ${usdc_walletBalance?.displayValue} USDC`
+                : "N/A"}
+            </TokenBalance>
           </InputGroup>
 
           <InputGroup>
             <Label>Collateral Amount</Label>
             <InputSelectWrapper>
-              <Input type="number" defaultValue="0.24789545" />
+              <Input type="number" defaultValue="100" />
               <Select>
-                <option>
-                  <CoinIcon>B</CoinIcon>BNB
-                </option>
+                <CoinIcon>
+                  <img src="/ethereum.png" width={32} height={32} />
+                </CoinIcon>
+                ETH
               </Select>
             </InputSelectWrapper>
+            <TokenBalance>
+              {eth_walletBalance
+                ? `Balance: ${Number(eth_walletBalance?.displayValue).toFixed(
+                    6
+                  )} ETH  ${USDPrice ? `(~$${USDPrice.toFixed(6)})` : ""}`
+                : "N/A"}
+            </TokenBalance>
           </InputGroup>
 
           <InputGroup>
@@ -226,17 +245,15 @@ const LoanBorrowingInterface = () => {
           </InputGroup>
 
           <TermButtons>
-            {["7 Days", "14 Days", "30 Days", "90 Days", "180 Days"].map(
-              (t) => (
-                <TermButton
-                  key={t}
-                  active={term === t}
-                  onClick={() => setTerm(t)}
-                >
-                  {t}
-                </TermButton>
-              )
-            )}
+            {["7 Days", "14 Days", "30 Days"].map((t) => (
+              <TermButton
+                key={t}
+                active={term === t}
+                onClick={() => setTerm(t)}
+              >
+                {t}
+              </TermButton>
+            ))}
           </TermButtons>
 
           <StartButton>Start Borrowing Now</StartButton>
