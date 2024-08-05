@@ -1,10 +1,11 @@
+import React from "react";
 import styled from "styled-components";
 import Wallet from "./Wallet";
 import { useSDK } from "@metamask/sdk-react";
 
 const DashboardContainer = styled.div`
   min-height: 100vh;
-  background: #000000eb;
+  background: #f5f7fa;
   position: relative;
   padding: 30px;
 
@@ -17,12 +18,12 @@ const DashboardContainer = styled.div`
     bottom: 0;
     background-image: radial-gradient(
         circle at 25px 25px,
-        rgba(255, 255, 255, 0.2) 2%,
+        rgba(0, 0, 0, 0.05) 2%,
         transparent 0%
       ),
       radial-gradient(
         circle at 75px 75px,
-        rgba(255, 255, 255, 0.2) 2%,
+        rgba(0, 0, 0, 0.05) 2%,
         transparent 0%
       );
     background-size: 100px 100px;
@@ -37,25 +38,26 @@ const Header = styled.header`
   align-items: center;
   margin-bottom: 20px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #ffffff;
   border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const Logo = styled.div`
   font-size: 24px;
   font-weight: bold;
-  color: #ffffff;
+  color: #333333;
 `;
 
 const AccountValue = styled.div`
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #ffffff;
+  color: #333333;
 `;
 
 const AccountChange = styled.span<{ negative?: string }>`
-  color: ${(props) => (props?.negative ? "#ff4136" : "#2ecc40")};
+  color: ${(props) => (props?.negative ? "#d32f2f" : "#388e3c")};
   font-size: 16px;
 `;
 
@@ -73,11 +75,11 @@ const TokenIcon = styled.img`
 
 const TokenName = styled.div`
   font-weight: bold;
-  color: #ffffff;
+  color: #333333;
 `;
 
 const TokenSymbol = styled.div`
-  color: #cccccc;
+  color: #666666;
   font-size: 14px;
 `;
 
@@ -90,17 +92,27 @@ const Table = styled.table`
 const TableHeader = styled.th`
   text-align: left;
   padding: 10px;
-  color: #ffffff;
+  color: #666666;
   font-weight: 600;
 `;
 
 const TableCell = styled.td`
   padding: 10px;
-  color: #ffffff;
+  color: #333333;
+
+  &:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+
+  &:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
 `;
 
 const LendButton = styled.button`
-  background-color: #4caf50;
+  background-color: #2196f3;
   color: white;
   border: none;
   border-radius: 4px;
@@ -110,16 +122,21 @@ const LendButton = styled.button`
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #1976d2;
   }
 `;
 
 const TokenItem = styled.tr`
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #ffffff;
   transition: background-color 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: #f0f4f8;
+  }
+
+  td {
+    background-color: inherit;
   }
 `;
 

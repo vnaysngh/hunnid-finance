@@ -1,8 +1,15 @@
 import "./App.css";
-import PortfolioDashboard from "./Portfolio";
+import Header from "./Header";
+import LoanRequestForm from "./LoanRequestForm";
+// import PortfolioDashboard from "./Portfolio";
 
 function App() {
-  return <PortfolioDashboard />;
+  return (
+    <>
+      <Header />
+      <LoanRequestForm />
+    </>
+  );
 }
 
 export default App;
