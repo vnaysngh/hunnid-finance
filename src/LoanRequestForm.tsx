@@ -1,142 +1,132 @@
-import { Alchemy, Network, Utils } from "alchemy-sdk";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
-import ethereum from "./assets/ethereum.png";
-import { useWalletBalance } from "thirdweb/react";
+import {
+  useActiveAccount,
+  useActiveWalletChain,
+  useWalletBalance
+} from "thirdweb/react";
 import { client } from "./client";
 import axios from "axios";
 
-const config = {
-  apiKey: import.meta.env.VITE_ALCHEMY_ACCESS_KEY,
-  network: Network.BASE_MAINNET
-};
-const alchemy = new Alchemy(config);
-
 const Container = styled.div`
-  width: 50vw;
-  height: 80vh;
+  font-family: Poppins;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 2vh 2vw;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
+  padding: 2rem;
+  background-color: #1a1b1e;
+  color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 `;
 
 const Title = styled.h1`
-  font-size: 3.5vh;
-  color: #333;
-  margin-bottom: 3vh;
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
   text-align: center;
+  font-weight: 700;
 `;
 
-const ContentWrapper = styled.div`
-  display: flex;
-  gap: 2vw;
-  flex: 1;
-  overflow-y: auto;
-`;
-
-const InputSection = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+const FormSection = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
 `;
 
 const InputGroup = styled.div`
-  margin-bottom: 2vh;
+  margin-bottom: 1.5rem;
 `;
 
 const Label = styled.label`
   display: block;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 1vh;
-  font-size: 2.2vh;
+  font-weight: 600;
+  color: #b3b3b3;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
 `;
 
-const InputSelectWrapper = styled.div`
+const InputWrapper = styled.div`
+  position: relative;
   display: flex;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  align-items: center;
+  background-color: #2c2d30;
+  border-radius: 8px;
   overflow: hidden;
-  height: 5vh;
 `;
 
 const Input = styled.input`
-  flex: 1;
-  padding: 1vh 1vw;
+  width: 100%;
+  padding: 1rem;
   border: none;
+  background-color: transparent;
+  color: #ffffff;
+  font-size: 1rem;
   outline: none;
-  font-size: 2vh;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 
-const Select = styled.div`
-  padding: 1vh;
-  border: none;
-  border-left: 1px solid #ddd;
-  background-color: #fff;
-  outline: none;
-  font-family: "Poppins";
-  font-size: 2vh;
-  appearance: none;
+const TokenSelect = styled.div`
+  padding: 0.5rem 1rem;
+  color: #ffffff;
+  font-weight: 600;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+`;
+
+const TokenIcon = styled.img`
+  width: 24px;
+  height: 24px;
+  margin-right: 0.5rem;
+`;
+
+const Balance = styled.div`
+  color: #b3b3b3;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
 `;
 
 const TermButtons = styled.div`
   display: flex;
-  gap: 1vw;
-  margin-top: 2vh;
+  gap: 1rem;
+  margin-top: 1rem;
 `;
 
-const TermButton = styled.button<{ active?: boolean }>`
-  padding: 1vh 1.5vw;
-  background-color: ${(props) => (props.active ? "#e0e0e0" : "white")};
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+const TermButton = styled.button<{ active: boolean }>`
+  font-family: Poppins;
+  padding: 0.75rem 1.5rem;
+  background-color: ${(props) => (props.active ? "#4a4b4e" : "#2c2d30")};
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1.8vh;
+  font-size: 1rem;
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: ${(props) => (props.active ? "#d0d0d0" : "#f0f0f0")};
+    background-color: #4a4b4e;
   }
 `;
 
 const StartButton = styled.button`
-  background-color: #4a90e2;
-  color: white;
-  padding: 1.5vh 2vw;
+  font-family: Poppins;
+  padding: 1rem 2rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  margin-top: 2vh;
+  font-size: 1.25rem;
   width: 100%;
-  font-size: 2.5vh;
+  margin-top: 2rem;
   transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #3a7bc8;
-  }
 `;
 
-const CoinIcon = styled.span`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 0.5vw;
-`;
-
-const TokenBalance = styled.div`
-  display: flex;
-  justify-content: end;
-  margin-top: 0.5vh;
-`;
-
-const LoanBorrowingInterface = () => {
+const LoanRequestForm = () => {
   const [term, setTerm] = useState("7 Days");
   const [USDPrice, setUSDPrice] = useState<number | null>(null);
   const activeAccount = useActiveAccount();
@@ -172,7 +162,7 @@ const LoanBorrowingInterface = () => {
           Number(eth_walletBalance?.displayValue);
         setUSDPrice(eth_usd_price);
       } catch (e) {
-        console.log(e);
+        console.error(e);
       }
     };
 
@@ -182,87 +172,74 @@ const LoanBorrowingInterface = () => {
   return (
     <Container>
       <Title>Create a Loan Request</Title>
-      <ContentWrapper>
-        <InputSection>
-          <InputGroup>
-            <Label>I want to borrow</Label>
+      <FormSection>
+        <InputGroup>
+          <Label>I want to borrow</Label>
+          <InputWrapper>
+            <Input type="number" defaultValue="0.24789545" />
+            <TokenSelect>
+              <TokenIcon src="/usdc.png" alt="USDC" />
+              USDC
+            </TokenSelect>
+          </InputWrapper>
+          <Balance>
+            Balance:{" "}
+            {usdc_walletBalance
+              ? `${usdc_walletBalance.displayValue} USDC`
+              : "N/A"}
+          </Balance>
+        </InputGroup>
 
-            <InputSelectWrapper>
-              <Input type="number" defaultValue="0.24789545" />
-              <Select>
-                <CoinIcon>
-                  {" "}
-                  <img src="/usdc.png" width={32} height={32} />
-                </CoinIcon>
-                USDC
-              </Select>
-            </InputSelectWrapper>
-            <TokenBalance>
-              {usdc_walletBalance
-                ? `Balance: ${usdc_walletBalance?.displayValue} USDC`
-                : "N/A"}
-            </TokenBalance>
-          </InputGroup>
+        <InputGroup>
+          <Label>Collateral Amount</Label>
+          <InputWrapper>
+            <Input type="number" defaultValue="100" />
+            <TokenSelect>
+              <TokenIcon src="/ethereum.png" alt="ETH" />
+              ETH
+            </TokenSelect>
+          </InputWrapper>
+          <Balance>
+            Balance:{" "}
+            {eth_walletBalance
+              ? `${Number(eth_walletBalance.displayValue).toFixed(6)} ETH ${
+                  USDPrice ? `(~$${USDPrice.toFixed(2)})` : ""
+                }`
+              : "N/A"}
+          </Balance>
+        </InputGroup>
+      </FormSection>
 
-          <InputGroup>
-            <Label>Collateral Amount</Label>
-            <InputSelectWrapper>
-              <Input type="number" defaultValue="100" />
-              <Select>
-                <CoinIcon>
-                  <img src="/ethereum.png" width={32} height={32} />
-                </CoinIcon>
-                ETH
-              </Select>
-            </InputSelectWrapper>
-            <TokenBalance>
-              {eth_walletBalance
-                ? `Balance: ${Number(eth_walletBalance?.displayValue).toFixed(
-                    6
-                  )} ETH  ${USDPrice ? `(~$${USDPrice.toFixed(6)})` : ""}`
-                : "N/A"}
-            </TokenBalance>
-          </InputGroup>
+      <InputGroup>
+        <Label>Interest Rate (%)</Label>
+        <InputWrapper>
+          <Input type="number" defaultValue="5" step="0.1" min="0" max="100" />
+        </InputWrapper>
+      </InputGroup>
 
-          <InputGroup>
-            <Label>Interest Rate (%)</Label>
-            <InputSelectWrapper>
-              <Input
-                type="number"
-                defaultValue="5"
-                step="0.1"
-                min="0"
-                max="100"
-              />
-            </InputSelectWrapper>
-          </InputGroup>
+      <InputGroup>
+        <Label>Loan Term</Label>
+        <div
+          style={{
+            color: "#b3b3b3",
+            fontSize: "0.875rem",
+            marginBottom: "0.5rem"
+          }}
+        >
+          No interest penalty for early repayment
+        </div>
+        <TermButtons>
+          {["7 Days", "14 Days", "30 Days"].map((t) => (
+            <TermButton key={t} active={term === t} onClick={() => setTerm(t)}>
+              {t}
+            </TermButton>
+          ))}
+        </TermButtons>
+      </InputGroup>
 
-          <InputGroup>
-            <Label>Loan Term</Label>
-            <span style={{ color: "#666", fontSize: "1.8vh" }}>
-              No interest penalty for early repayment
-            </span>
-          </InputGroup>
-
-          <TermButtons>
-            {["7 Days", "14 Days", "30 Days"].map((t) => (
-              <TermButton
-                key={t}
-                active={term === t}
-                onClick={() => setTerm(t)}
-              >
-                {t}
-              </TermButton>
-            ))}
-          </TermButtons>
-
-          <StartButton>Start Borrowing Now</StartButton>
-        </InputSection>
-
-        {/* <InfoBox></InfoBox> */}
-      </ContentWrapper>
+      <StartButton>Start Borrowing Now</StartButton>
     </Container>
   );
 };
 
-export default LoanBorrowingInterface;
+export default LoanRequestForm;
