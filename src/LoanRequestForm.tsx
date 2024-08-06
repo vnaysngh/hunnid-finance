@@ -7,6 +7,7 @@ import {
 } from "thirdweb/react";
 import { client } from "./client";
 import axios from "axios";
+import { useStateContext } from "./context";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -131,6 +132,7 @@ const LoanRequestForm = () => {
   const [USDPrice, setUSDPrice] = useState<number | null>(null);
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
+  const { createLoan } = useStateContext();
 
   const { data: eth_walletBalance } = useWalletBalance({
     chain: activeChain,
@@ -168,6 +170,11 @@ const LoanRequestForm = () => {
 
     if (eth_walletBalance?.displayValue) getUSDBalance();
   }, [eth_walletBalance]);
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    createLoan();
+  };
 
   return (
     <Container>
@@ -237,7 +244,7 @@ const LoanRequestForm = () => {
         </TermButtons>
       </InputGroup>
 
-      <StartButton>Start Borrowing Now</StartButton>
+      <StartButton onClick={handleSubmit}>Start Borrowing Now</StartButton>
     </Container>
   );
 };
