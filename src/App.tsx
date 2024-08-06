@@ -23,9 +23,10 @@ const Sidebar = styled.nav`
 `;
 
 const Logo = styled.div`
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2.5rem 0;
 `;
 
 const NavItem = styled.div<{ active?: boolean }>`
@@ -83,7 +84,10 @@ function App() {
   return (
     <AppContainer>
       <Sidebar>
-        <Logo>PigPig.Fi</Logo>
+        <Logo>
+          <img src="/pigpig-finance.png" width={"80%"} />
+        </Logo>
+
         {navItems.map((item) => (
           <NavItem
             key={item.key}
