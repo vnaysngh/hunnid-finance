@@ -83,7 +83,7 @@ function App() {
   return (
     <AppContainer>
       <Sidebar>
-        <Logo>Hunnid.Fi</Logo>
+        <Logo>PigPig.Fi</Logo>
         {navItems.map((item) => (
           <NavItem
             key={item.key}
