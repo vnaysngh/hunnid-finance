@@ -79,7 +79,7 @@ function App() {
   return (
     <AppContainer>
       <Sidebar>
-        <Logo>Broo.Fi</Logo>
+        <Logo>Hunnid.Fi</Logo>
         {navItems.map((item) => (
           <NavItem
             key={item.key}
