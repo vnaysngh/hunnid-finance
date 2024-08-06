@@ -3,11 +3,15 @@ import "./App.css";
 import LoanRequestForm from "./LoanRequestForm";
 import Wallet from "./Wallet";
 import { useState } from "react";
+import LoanDetailsPage from "./LoanDetails";
+import UserProfilePage from "./Profile";
+import BrowseLoansPage from "./BrowseLoans";
 // import PortfolioDashboard from "./Portfolio";
 
 const AppContainer = styled.div`
   display: flex;
   color: #ffffff;
+  min-height: 100vh;
 `;
 
 const Sidebar = styled.nav`
@@ -50,7 +54,7 @@ const NavText = styled.span`
 
 const MainContent = styled.main`
   flex-grow: 1;
-  padding: 40px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
 `;
@@ -96,7 +100,10 @@ function App() {
             <Wallet />
           </UserInfo>
         </Header>
-        <LoanRequestForm />
+        {/* <LoanRequestForm /> */}
+        {/* <LoanDetailsPage loanDetails={{}} /> */}
+        {/* <UserProfilePage /> */}
+        {/* <BrowseLoansPage /> */}
       </MainContent>
     </AppContainer>
   );
