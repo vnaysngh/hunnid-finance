@@ -35,7 +35,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   const contract = getContract({
     client,
     chain: defineChain(84532),
-    address: "0xfB9b03b361cDC9A7A40629AAF79fb492f19c3495"
+    address: "0x5968B982f0f3bA0a1fDF423A81cdF76488096B82"
   });
   const activeAccount = useActiveAccount();
 

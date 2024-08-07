@@ -13,7 +13,7 @@ import { ethers } from "ethers";
 const Container = styled.div`
   font-family: Poppins;
   width: 100%;
-  max-width: 800px;
+  max-width: 80%;
   margin: 0 auto;
   padding: 2rem;
   background-color: #1a1b1e;
@@ -129,6 +129,31 @@ const StartButton = styled.button`
   transition: background-color 0.3s;
 `;
 
+const AdditionalInfoContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #2c2d30;
+  border-radius: 8px;
+`;
+
+const InfoItem = styled.div`
+  text-align: center;
+`;
+
+const InfoLabel = styled.div`
+  color: #b3b3b3;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+`;
+
+const InfoValue = styled.div`
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+`;
+
 export type FormDetails = {
   borrowAmount: string;
   borrowToken: string;
@@ -140,6 +165,8 @@ export type FormDetails = {
 
 const LoanRequestForm = () => {
   const [USDPrice, setUSDPrice] = useState<number | null>(null);
+  const [ETHUSDPrice, setETHSDPrice] = useState<number | null>(null);
+  const [LTV, setLTV] = useState<number | null>(70);
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { publishLoan } = useStateContext();
@@ -185,6 +212,7 @@ const LoanRequestForm = () => {
         const eth_usd_price =
           response.data?.tokens[0].price *
           Number(eth_walletBalance?.displayValue);
+        setETHSDPrice(response.data?.tokens[0].price);
         setUSDPrice(eth_usd_price);
       } catch (e) {
         console.error(e);
@@ -209,12 +237,34 @@ const LoanRequestForm = () => {
     });
   };
 
-  // 86400
-  // console.log(startDate, startDate + 24 * 60 * 60 * 30);
+  useEffect(() => {
+    if (!USDPrice || !ETHUSDPrice) return;
+    // Calculate Initial LTV
+    // console.log(ltv, "ltv new");
+    // setInitialLTV(ltv.toFixed(2) + "%");
+
+    // Calculate Liquidation Price
+    // const liqPrice = 0.83 * USDPrice;
+    // console.log(liqPrice, "ltv");
+    // setLiquidationPrice(liqPrice.toFixed(8));
+
+    // setTotalInterest(interest.toFixed(6));
+    // const ltv = Math.round((Number(form.borrowAmount) / USDPrice) * 100);
+    const collateralAmountInUSDC = Number(form.borrowAmount) / 0.7;
+    const collateralAmountInETH = collateralAmountInUSDC / ETHUSDPrice;
+    // setLTV(ltv);
+    // setForm({ ...form, collateralAmount: collateralAmountInETH.toString() });
+  }, [
+    form.borrowAmount,
+    form.collateralAmount,
+    form.rate,
+    form.duration,
+    eth_walletBalance,
+    USDPrice
+  ]);
 
   return (
     <Container>
-      <Title>Create a Loan Request</Title>
       <FormSection>
         <InputGroup>
           <Label>I want to borrow</Label>
@@ -254,6 +304,12 @@ const LoanRequestForm = () => {
               ETH
             </TokenSelect>
           </InputWrapper>
+          {Number(form.collateralAmount) >
+            Number(eth_walletBalance?.displayValue) && (
+            <Label style={{ color: "red", marginTop: 5 }}>
+              Insufficient Balance
+            </Label>
+          )}
           <Balance>
             Balance:{" "}
             {eth_walletBalance
@@ -304,6 +360,23 @@ const LoanRequestForm = () => {
           ))}
         </TermButtons>
       </InputGroup>
+
+      <AdditionalInfoContainer>
+        <InfoItem>
+          <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
+          <InfoValue style={{ color: "#318d46" }}>
+            {LTV ? `${LTV}%` : "-"}
+          </InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>Liquidation Price (ETH/BUSD)</InfoLabel>
+          <InfoValue style={{ color: "red" }}>{44}</InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>Total Interest Amount</InfoLabel>
+          <InfoValue>{33} BUSD</InfoValue>
+        </InfoItem>
+      </AdditionalInfoContainer>
 
       <StartButton onClick={handleSubmit}>Start Borrowing Now</StartButton>
     </Container>

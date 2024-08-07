@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context";
-import { useReadContract } from "thirdweb/react";
-import { ethers } from "ethers";
 
 const Container = styled.div`
   font-family: Poppins;
