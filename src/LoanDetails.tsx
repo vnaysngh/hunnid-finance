@@ -83,7 +83,7 @@ const ActionButton = styled.button`
   }
 `;
 
-const LoanDetailsPage = ({ loanDetails }: { loanDetails: any }) => {
+const LoanDetailsPage = () => {
   return (
     <Container>
       <Title>Loan Details</Title>

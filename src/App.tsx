@@ -1,11 +1,9 @@
 import styled from "styled-components";
 import "./App.css";
-import LoanRequestForm from "./LoanRequestForm";
 import Wallet from "./Wallet";
 import { useState } from "react";
-import LoanDetailsPage from "./LoanDetails";
-import UserProfilePage from "./Profile";
-import BrowseLoansPage from "./BrowseLoans";
+import { RouterProvider } from "react-router-dom";
+import router from "./Router";
 // import PortfolioDashboard from "./Portfolio";
 
 const AppContainer = styled.div`
@@ -77,8 +75,15 @@ function App() {
   const [activeNavItem, setActiveNavItem] = useState("browse");
 
   const navItems = [
-    { icon: "📊", text: "Browse", key: "browse" },
-    { icon: "💱", text: "Start Borrowing", key: "start-borrowing" }
+    { icon: "📊", text: "Browse", key: "browse", path: "/" },
+    {
+      icon: "💱",
+      text: "Create Loan",
+      key: "create-loan",
+      path: "/create-loan"
+    },
+    { icon: "💱", text: "Portfolio", key: "portfolio", path: "/portfolio" },
+    { icon: "💱", text: "Profile", key: "profile", path: "/profile" }
   ];
 
   return (
@@ -104,10 +109,7 @@ function App() {
             <Wallet />
           </UserInfo>
         </Header>
-        {/* <LoanRequestForm /> */}
-        {/* <LoanDetailsPage loanDetails={{}} /> */}
-        {/* <UserProfilePage /> */}
-        {/* <BrowseLoansPage /> */}
+        <RouterProvider router={router} />
       </MainContent>
     </AppContainer>
   );
