@@ -1,84 +1,23 @@
 import styled from "styled-components";
-import Wallet from "./Wallet";
 
 const DashboardContainer = styled.div`
-  min-height: 100vh;
-  background: #f5f7fa;
-  position: relative;
-  padding: 30px;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(
-        circle at 25px 25px,
-        rgba(0, 0, 0, 0.05) 2%,
-        transparent 0%
-      ),
-      radial-gradient(
-        circle at 75px 75px,
-        rgba(0, 0, 0, 0.05) 2%,
-        transparent 0%
-      );
-    background-size: 100px 100px;
-    opacity: 0.3;
-    pointer-events: none;
-  }
+  font-family: Poppins;
+  width: 100%;
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #1a1b1e;
+  color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const Logo = styled.div`
-  font-size: 24px;
-  font-weight: bold;
-  color: #333333;
-`;
-
-const AccountValue = styled.div`
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #333333;
-`;
-
-const AccountChange = styled.span<{ negative?: string }>`
-  color: ${(props) => (props?.negative ? "#d32f2f" : "#388e3c")};
-  font-size: 16px;
-`;
-
-const TokenInfo = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const TokenIcon = styled.img`
-  width: 30px;
-  height: 30px;
-  margin-right: 10px;
-  border-radius: 50%;
-`;
-
-const TokenName = styled.div`
-  font-weight: bold;
-  color: #333333;
-`;
-
-const TokenSymbol = styled.div`
-  color: #666666;
-  font-size: 14px;
+const Title = styled.h1`
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 700;
 `;
 
 const Table = styled.table`
@@ -89,52 +28,73 @@ const Table = styled.table`
 
 const TableHeader = styled.th`
   text-align: left;
-  padding: 10px;
-  color: #666666;
+  padding: 1rem;
+  color: #b3b3b3;
   font-weight: 600;
-`;
-
-const TableCell = styled.td`
-  padding: 10px;
-  color: #333333;
-
-  &:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-  }
-`;
-
-const LendButton = styled.button`
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #1976d2;
-  }
+  font-size: 1rem;
 `;
 
 const TokenItem = styled.tr`
-  background-color: #ffffff;
+  background-color: #2c2d30;
   transition: background-color 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: #f0f4f8;
+    background-color: #3a3b3e;
+  }
+`;
+
+const TableCell = styled.td`
+  padding: 1rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+
+  &:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
   }
 
-  td {
-    background-color: inherit;
+  &:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+`;
+
+const TokenInfo = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const TokenIcon = styled.img`
+  width: 30px;
+  height: 30px;
+  margin-right: 1rem;
+  border-radius: 50%;
+`;
+
+const TokenName = styled.div`
+  font-weight: bold;
+  color: #ffffff;
+`;
+
+const TokenSymbol = styled.div`
+  color: #b3b3b3;
+  font-size: 0.75rem;
+`;
+
+const LendButton = styled.button`
+  font-family: Poppins;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.875rem;
+  background-color: #3a3b3e;
+  color: #ffffff;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #4a4b4e;
   }
 `;
 
@@ -180,16 +140,7 @@ const PortfolioDashboard = () => {
 
   return (
     <DashboardContainer>
-      <Header>
-        <Logo>Portfolio Dashboard</Logo>
-        <Wallet />
-      </Header>
-
-      <AccountValue>
-        $308.68
-        <AccountChange negative="true">-$30.65 (-9.93%)</AccountChange>
-      </AccountValue>
-
+      <Title>Portfolio Dashboard</Title>
       <Table>
         <thead>
           <tr>
@@ -206,7 +157,7 @@ const PortfolioDashboard = () => {
               <TableCell>
                 <TokenInfo>
                   <TokenIcon
-                    src={`https://via.placeholder.com/30?text=${token.symbol[0]}`}
+                    src={`/api/placeholder/30?text=${token.symbol[0]}`}
                     alt={token.name}
                   />
                   <div>

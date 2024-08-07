@@ -6,7 +6,7 @@ import UserProfilePage from "./Profile";
 import PortfolioDashboard from "./Portfolio";
 import ErrorPage from "./ErrorPage";
 
-const router = createBrowserRouter([
+const routes = createBrowserRouter([
   {
     path: "/",
     element: <BrowseLoansPage />,
@@ -30,4 +30,4 @@ const router = createBrowserRouter([
   }
 ]);
 
-export default router;
+export default routes;

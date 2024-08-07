@@ -3,7 +3,7 @@ import styled from "styled-components";
 const Container = styled.div`
   font-family: Poppins;
   width: 100%;
-  max-width: 1000px;
+  max-width: 80%;
   margin: 0 auto;
   padding: 2rem;
   background-color: #1a1b1e;
@@ -54,8 +54,9 @@ const LoanCard = styled.div`
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
   gap: 1rem;
   align-items: center;
 `;

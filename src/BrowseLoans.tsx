@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 const Container = styled.div`
   font-family: Poppins;
   width: 100%;
-  max-width: 90%;
+  max-width: 80%;
   margin: 0 auto;
   padding: 1rem;
   background-color: #1a1b1e;
@@ -55,8 +55,9 @@ const LoanCard = styled.div`
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
   gap: 0.2rem;
   align-items: center;
 `;

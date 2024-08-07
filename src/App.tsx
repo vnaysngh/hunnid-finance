@@ -1,10 +1,14 @@
 import styled from "styled-components";
 import "./App.css";
 import Wallet from "./Wallet";
-import { useState } from "react";
-import { RouterProvider } from "react-router-dom";
-import router from "./Router";
+import { lazy, Suspense, useState } from "react";
+import { Link, Route, RouterProvider, Routes } from "react-router-dom";
 // import PortfolioDashboard from "./Portfolio";
+
+const CreateLoan = lazy(() => import("./LoanRequestForm"));
+const BrowseLoan = lazy(() => import("./BrowseLoans"));
+const Portfolio = lazy(() => import("./Portfolio"));
+const Profile = lazy(() => import("./Profile"));
 
 const AppContainer = styled.div`
   display: flex;
@@ -34,6 +38,7 @@ const NavItem = styled.div<{ active?: boolean }>`
   margin-bottom: 10px;
   cursor: pointer;
   border-radius: 8px;
+  text-decoration: 
   background-color: ${(props) => (props.active ? "#2c2d30" : "transparent")};
   transition: background-color 0.3s;
 
@@ -71,6 +76,11 @@ const UserInfo = styled.div`
   border-radius: 20px;
 `;
 
+const StyledLink = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+`;
+
 function App() {
   const [activeNavItem, setActiveNavItem] = useState("browse");
 
@@ -87,31 +97,37 @@ function App() {
   ];
 
   return (
-    <AppContainer>
-      <Sidebar>
-        <Logo>
-          <img src="/pigpig-finance.png" width={"80%"} />
-        </Logo>
-
-        {navItems.map((item) => (
-          <NavItem
-            key={item.key}
-            active={activeNavItem === item.key}
-            onClick={() => setActiveNavItem(item.key)}
-          >
-            <NavText>{item.text}</NavText>
-          </NavItem>
-        ))}
-      </Sidebar>
-      <MainContent>
-        <Header>
-          <UserInfo>
-            <Wallet />
-          </UserInfo>
-        </Header>
-        <RouterProvider router={router} />
-      </MainContent>
-    </AppContainer>
+    <>
+      <AppContainer>
+        <Sidebar>
+          <Logo>
+            <img src="/pigpig-finance.png" width={"80%"} />
+          </Logo>
+          {navItems.map((item) => (
+            <StyledLink to={item.path}>
+              <NavItem key={item.key} active={activeNavItem === item.key}>
+                {item.text}
+              </NavItem>
+            </StyledLink>
+          ))}
+        </Sidebar>
+        <MainContent>
+          <Header>
+            <UserInfo>
+              <Wallet />
+            </UserInfo>
+          </Header>
+          <Suspense fallback={<div>Loading</div>}>
+            <Routes>
+              <Route path="/" element={<BrowseLoan />} />
+              <Route path="/create-loan" element={<CreateLoan />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/portfolio" element={<Portfolio />} />
+            </Routes>
+          </Suspense>
+        </MainContent>
+      </AppContainer>
+    </>
   );
 }
 
