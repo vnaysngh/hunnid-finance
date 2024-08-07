@@ -8,6 +8,7 @@ import {
 import { client } from "./client";
 import axios from "axios";
 import { useStateContext } from "./context";
+import { ethers } from "ethers";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -57,6 +58,7 @@ const InputWrapper = styled.div`
 `;
 
 const Input = styled.input`
+  font-family: Poppins;
   width: 100%;
   padding: 1rem;
   border: none;
@@ -127,12 +129,33 @@ const StartButton = styled.button`
   transition: background-color 0.3s;
 `;
 
+export type FormDetails = {
+  borrowAmount: string;
+  borrowToken: string;
+  collateralAmount: string;
+  collateralToken: string;
+  rate: string;
+  duration: number;
+};
+
 const LoanRequestForm = () => {
-  const [term, setTerm] = useState("7 Days");
   const [USDPrice, setUSDPrice] = useState<number | null>(null);
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { publishLoan } = useStateContext();
+
+  const borrowToken = "0xD4fA4dE9D8F8DB39EAf4de9A19bF6910F6B5bD60";
+  const collateralToken = "0x4200000000000000000000000000000000000006";
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [form, setForm] = useState<FormDetails>({
+    borrowAmount: "",
+    borrowToken,
+    collateralAmount: "",
+    collateralToken,
+    rate: "5",
+    duration: 7
+  });
 
   const { data: eth_walletBalance } = useWalletBalance({
     chain: activeChain,
@@ -171,10 +194,23 @@ const LoanRequestForm = () => {
     if (eth_walletBalance?.displayValue) getUSDBalance();
   }, [eth_walletBalance]);
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    publishLoan();
+  const handleFormFieldsChange = (e: any) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    // setIsLoading(true)
+    //86,400 total seconds in a day multiplied by chosen duration
+    await publishLoan({
+      ...form,
+      borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
+      collateralAmount: ethers.parseUnits(form.collateralAmount, 18)
+    });
+  };
+
+  // 86400
+  // console.log(startDate, startDate + 24 * 60 * 60 * 30);
 
   return (
     <Container>
@@ -183,7 +219,13 @@ const LoanRequestForm = () => {
         <InputGroup>
           <Label>I want to borrow</Label>
           <InputWrapper>
-            <Input type="number" defaultValue="0.24789545" />
+            <Input
+              type="number"
+              name="borrowAmount"
+              placeholder="100"
+              value={form.borrowAmount}
+              onChange={handleFormFieldsChange}
+            />
             <TokenSelect>
               <TokenIcon src="/usdc.png" alt="USDC" />
               USDC
@@ -200,7 +242,13 @@ const LoanRequestForm = () => {
         <InputGroup>
           <Label>Collateral Amount</Label>
           <InputWrapper>
-            <Input type="number" defaultValue="100" />
+            <Input
+              type="number"
+              name="collateralAmount"
+              placeholder="0.25"
+              value={form.collateralAmount}
+              onChange={handleFormFieldsChange}
+            />
             <TokenSelect>
               <TokenIcon src="/ethereum.png" alt="ETH" />
               ETH
@@ -220,7 +268,16 @@ const LoanRequestForm = () => {
       <InputGroup>
         <Label>Interest Rate (%)</Label>
         <InputWrapper>
-          <Input type="number" defaultValue="5" step="0.1" min="0" max="100" />
+          <Input
+            type="number"
+            name="rate"
+            defaultValue="5"
+            step="0.1"
+            min="0"
+            max="100"
+            value={form.rate}
+            onChange={handleFormFieldsChange}
+          />
         </InputWrapper>
       </InputGroup>
 
@@ -236,9 +293,13 @@ const LoanRequestForm = () => {
           No interest penalty for early repayment
         </div>
         <TermButtons>
-          {["7 Days", "14 Days", "30 Days"].map((t) => (
-            <TermButton key={t} active={term === t} onClick={() => setTerm(t)}>
-              {t}
+          {[7, 14, 30].map((t) => (
+            <TermButton
+              key={t}
+              active={form.duration === t}
+              onClick={() => setForm({ ...form, duration: t })}
+            >
+              {t} Days
             </TermButton>
           ))}
         </TermButtons>

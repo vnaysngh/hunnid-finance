@@ -182,24 +182,24 @@ const allLoans = [
 
 const BrowseLoansPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const loansPerPage = 10;
+  // const [filter, setFilter] = useState("all");
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const loansPerPage = 10;
 
-  const filteredLoans = allLoans.filter((loan) => {
-    const matchesSearch = loan.borrower
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filter === "all" || loan.status.toLowerCase() === filter;
-    return matchesSearch && matchesFilter;
-  });
+  // const filteredLoans = allLoans.filter((loan) => {
+  //   const matchesSearch = loan.borrower
+  //     .toLowerCase()
+  //     .includes(searchTerm.toLowerCase());
+  //   const matchesFilter =
+  //     filter === "all" || loan.status.toLowerCase() === filter;
+  //   return matchesSearch && matchesFilter;
+  // });
 
-  const indexOfLastLoan = currentPage * loansPerPage;
-  const indexOfFirstLoan = indexOfLastLoan - loansPerPage;
-  const currentLoans = filteredLoans.slice(indexOfFirstLoan, indexOfLastLoan);
+  // const indexOfLastLoan = currentPage * loansPerPage;
+  // const indexOfFirstLoan = indexOfLastLoan - loansPerPage;
+  // const currentLoans = filteredLoans.slice(indexOfFirstLoan, indexOfLastLoan);
 
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  // const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const { loans } = useStateContext();
 
@@ -258,7 +258,7 @@ const BrowseLoansPage = () => {
           </ActionButton>
         </LoanCard>
       ))}
-      <Pagination>
+      {/* <Pagination>
         {Array.from({
           length: Math.ceil(filteredLoans.length / loansPerPage)
         }).map((_, index) => (
@@ -266,7 +266,7 @@ const BrowseLoansPage = () => {
             {index + 1}
           </PageButton>
         ))}
-      </Pagination>
+      </Pagination> */}
     </Container>
   );
 };
