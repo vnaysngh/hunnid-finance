@@ -1,9 +1,21 @@
-import React, { useContext, createContext } from "react";
-import { useReadContract, useActiveAccount } from "thirdweb/react";
+import { useContext, createContext, useMemo } from "react";
+import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { defineChain, getContract, prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
 import { ethers } from "ethers";
 import { client } from "../client";
+
+export type Loan = {
+  borrowAmount: number;
+  borrowToken: string;
+  collateralAmount: number;
+  collateralToken: string;
+  deadline: number;
+  duration: number;
+  owner: string;
+  rate: number;
+  status: string;
+};
 
 const StateContext = createContext<any>({});
 
@@ -42,11 +54,35 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       .catch((e) => console.log(e));
   };
 
+  const { data: loans } = useReadContract({
+    contract,
+    method:
+      "function getLoans() view returns ((address owner, address borrowToken, address collateralToken, uint256 borrowAmount, uint256 collateralAmount, uint256 rate, uint256 duration, uint256 deadline)[])"
+  });
+
+  const parsedLoans: Loan[] | [] = useMemo(() => {
+    if (loans?.length) {
+      return loans.map((loan) => ({
+        borrowAmount: Number(ethers.formatEther(loan.borrowAmount)),
+        borrowToken: loan.borrowToken,
+        collateralAmount: Number(ethers.formatEther(loan.collateralAmount)),
+        collateralToken: loan.collateralToken,
+        deadline: Number(loan.deadline),
+        duration: Number(loan.duration),
+        owner: loan.owner,
+        rate: Number(loan.rate),
+        status: "pending"
+      }));
+    } else return [];
+  }, [loans]);
+
   return (
     <StateContext.Provider
       value={{
+        contract,
         address: activeAccount?.address,
-        createLoan: publishLoan
+        loans: parsedLoans,
+        publishLoan
       }}
     >
       {children}

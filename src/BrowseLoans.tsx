@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
+import { Loan, useStateContext } from "./context";
+import { useReadContract } from "thirdweb/react";
+import { ethers } from "ethers";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -28,6 +31,7 @@ const FilterSection = styled.div`
 `;
 
 const SearchInput = styled.input`
+  font-family: Poppins;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 8px;
@@ -197,6 +201,8 @@ const BrowseLoansPage = () => {
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  const { loans } = useStateContext();
+
   return (
     <Container>
       <Title>Browse Active Loans</Title>
@@ -207,7 +213,7 @@ const BrowseLoansPage = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <FilterSelect
+        {/*    <FilterSelect
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
@@ -215,19 +221,19 @@ const BrowseLoansPage = () => {
           <option value="active">Active</option>
           <option value="pending">Pending</option>
           <option value="completed">Completed</option>
-        </FilterSelect>
+        </FilterSelect> */}
       </FilterSection>
-      {currentLoans.map((loan, index) => (
+      {loans.map((loan: Loan, index: number) => (
         <LoanCard key={index}>
           <LoanDetail>
             <Label>Borrower</Label>
-            <Value>{loan.borrower}</Value>
+            <Value>{`${loan.owner.slice(0, 6)}...`}</Value>
           </LoanDetail>
           <LoanDetail>
             <Label>Borrowed</Label>
             <Value>
               <TokenIcon src="/usdc.png" alt="USDC" />
-              {loan.borrowedAmount} USDC
+              {loan.borrowAmount} USDC
             </Value>
           </LoanDetail>
           <LoanDetail>
@@ -239,7 +245,7 @@ const BrowseLoansPage = () => {
           </LoanDetail>
           <LoanDetail>
             <Label>Interest Rate</Label>
-            <Value>{loan.interestRate}%</Value>
+            <Value>{loan.rate}%</Value>
           </LoanDetail>
           <LoanDetail>
             <Label>Status</Label>

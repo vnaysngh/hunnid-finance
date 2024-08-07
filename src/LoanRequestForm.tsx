@@ -132,7 +132,7 @@ const LoanRequestForm = () => {
   const [USDPrice, setUSDPrice] = useState<number | null>(null);
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
-  const { createLoan } = useStateContext();
+  const { publishLoan } = useStateContext();
 
   const { data: eth_walletBalance } = useWalletBalance({
     chain: activeChain,
@@ -173,7 +173,7 @@ const LoanRequestForm = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    createLoan();
+    publishLoan();
   };
 
   return (
