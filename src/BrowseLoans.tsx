@@ -132,79 +132,30 @@ const PageButton = styled.button`
   }
 `;
 
-// Sample data (you would typically fetch this from your backend or blockchain)
-const allLoans = [
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "5000",
-    collateralAmount: "2.5",
-    interestRate: "5.5",
-    status: "Active"
-  },
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    interestRate: "6",
-    status: "Pending"
-  },
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    interestRate: "6",
-    status: "Pending"
-  },
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    interestRate: "6",
-    status: "Pending"
-  },
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    interestRate: "6",
-    status: "Pending"
-  },
-  {
-    borrower: "0x123456789abcdef...",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    interestRate: "6",
-    status: "Pending"
-  }
-  // ... more loans ...
-];
-
 const BrowseLoansPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  // const [filter, setFilter] = useState("all");
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const loansPerPage = 10;
-
-  // const filteredLoans = allLoans.filter((loan) => {
-  //   const matchesSearch = loan.borrower
-  //     .toLowerCase()
-  //     .includes(searchTerm.toLowerCase());
-  //   const matchesFilter =
-  //     filter === "all" || loan.status.toLowerCase() === filter;
-  //   return matchesSearch && matchesFilter;
-  // });
-
-  // const indexOfLastLoan = currentPage * loansPerPage;
-  // const indexOfFirstLoan = indexOfLastLoan - loansPerPage;
-  // const currentLoans = filteredLoans.slice(indexOfFirstLoan, indexOfLastLoan);
-
-  // const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
+  const [filter, setFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const loansPerPage = 5;
   const { loans } = useStateContext();
+
+  const filteredLoans = loans.filter((loan: Loan) => {
+    const matchesSearch = loan.owner
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filter === "all" || loan.status.toLowerCase() === filter;
+    return matchesSearch && matchesFilter;
+  });
+
+  const indexOfLastLoan = currentPage * loansPerPage;
+  const indexOfFirstLoan = indexOfLastLoan - loansPerPage;
+  const currentLoans = filteredLoans.slice(indexOfFirstLoan, indexOfLastLoan);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <Container>
-      <Title>Browse Active Loans</Title>
       <FilterSection>
         <SearchInput
           type="text"
@@ -222,7 +173,7 @@ const BrowseLoansPage = () => {
           <option value="completed">Completed</option>
         </FilterSelect> */}
       </FilterSection>
-      {loans.map((loan: Loan, index: number) => (
+      {currentLoans.map((loan: Loan, index: number) => (
         <LoanCard key={index}>
           <LoanDetail>
             <Label>Borrower</Label>
@@ -239,7 +190,7 @@ const BrowseLoansPage = () => {
             <Label>Collateral</Label>
             <Value>
               <TokenIcon src="/ethereum.png" alt="ETH" />
-              {loan.collateralAmount} ETH
+              {loan.collateralAmount.toFixed(4)} ETH
             </Value>
           </LoanDetail>
           <LoanDetail>
@@ -257,7 +208,7 @@ const BrowseLoansPage = () => {
           </ActionButton>
         </LoanCard>
       ))}
-      {/* <Pagination>
+      <Pagination>
         {Array.from({
           length: Math.ceil(filteredLoans.length / loansPerPage)
         }).map((_, index) => (
@@ -265,7 +216,7 @@ const BrowseLoansPage = () => {
             {index + 1}
           </PageButton>
         ))}
-      </Pagination> */}
+      </Pagination>
     </Container>
   );
 };

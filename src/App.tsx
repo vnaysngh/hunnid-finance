@@ -28,7 +28,7 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 2.5rem 0;
+  margin: 1rem 0;
 `;
 
 const NavItem = styled.div<{ active?: boolean }>`
@@ -47,13 +47,8 @@ const NavItem = styled.div<{ active?: boolean }>`
   }
 `;
 
-const NavIcon = styled.span`
-  margin-right: 10px;
-  font-size: 20px;
-`;
-
-const NavText = styled.span`
-  font-size: 16px;
+const NavItemsContainer = styled.div`
+  margin-top: 5rem;
 `;
 
 const MainContent = styled.main`
@@ -65,8 +60,17 @@ const MainContent = styled.main`
 
 const Header = styled.header`
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 40px;
+`;
+
+const PageTitle = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 2.5rem;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 20px;
 `;
 
 const UserInfo = styled.div`
@@ -103,16 +107,19 @@ function App() {
           <Logo>
             <img src="/logo.png" width="80%" alt="Hunnid Finance Logo" />
           </Logo>
-          {navItems.map((item) => (
-            <StyledLink to={item.path}>
-              <NavItem key={item.key} active={activeNavItem === item.key}>
-                {item.text}
-              </NavItem>
-            </StyledLink>
-          ))}
+          <NavItemsContainer>
+            {navItems.map((item) => (
+              <StyledLink to={item.path}>
+                <NavItem key={item.key} active={activeNavItem === item.key}>
+                  {item.text}
+                </NavItem>
+              </StyledLink>
+            ))}
+          </NavItemsContainer>
         </Sidebar>
         <MainContent>
           <Header>
+            <PageTitle>Browse Active Loans</PageTitle>
             <UserInfo>
               <Wallet />
             </UserInfo>
