@@ -240,8 +240,7 @@ const LoanRequestForm = () => {
       borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
       collateralAmount: ethers.parseUnits(form.collateralAmount, 18)
     });
-
-    if (response.transactionHash) setTxHash(response.transactionHash);
+    if (response?.transactionHash) setTxHash(response?.transactionHash);
     else setError(response.message);
     setIsLoading(false);
   };

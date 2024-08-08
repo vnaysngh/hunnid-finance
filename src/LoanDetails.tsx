@@ -27,6 +27,11 @@ const Title = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
   color: #ffffff;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const StatusBadge = styled.span<{ status: string }>`
@@ -133,10 +138,22 @@ const LoanDetailsPage = () => {
     }
   }, [loanDetails, price]);
 
+  const openExplorer = () => {
+    window.open(
+      `https://base.blockscout.com/address/${loanDetails.owner}`,
+      "_blank"
+    );
+  };
+
   return (
     <Container>
       <Header>
-        <Title>Loan Details</Title>
+        <Title onClick={openExplorer}>
+          Created by:{" "}
+          {`${loanDetails?.owner.slice(0, 4)}...${loanDetails?.owner.slice(
+            -4
+          )}`}
+        </Title>
         <StatusBadge status={loanDetails?.status}>
           {loanDetails?.status}
         </StatusBadge>

@@ -34,8 +34,12 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   const contract = getContract({
     client,
     chain: defineChain(8453),
-    address: "0x5968B982f0f3bA0a1fDF423A81cdF76488096B82"
+    address: "0x92B701321C64b5e581911785fDE862588bede949"
   });
+
+  // connect to your contract
+  //  const token_contract = ethers.Contract
+
   const activeAccount = useActiveAccount();
 
   const publishLoan = async (form: FormDetails) => {

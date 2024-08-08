@@ -177,7 +177,7 @@ const BrowseLoansPage = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <FilterContainer>
-          <FilterSelect
+          {/*   <FilterSelect
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -185,7 +185,7 @@ const BrowseLoansPage = () => {
             <option value="active">Active</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
-          </FilterSelect>
+          </FilterSelect> */}
         </FilterContainer>
       </Header>
       <LoanList>

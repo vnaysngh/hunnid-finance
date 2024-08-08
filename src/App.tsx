@@ -2,7 +2,7 @@ import styled from "styled-components";
 import "./App.css";
 import Wallet from "./Wallet";
 import { lazy, Suspense, useState } from "react";
-import { Link, Route, RouterProvider, Routes } from "react-router-dom";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./LoanDetails";
 // import PortfolioDashboard from "./Portfolio";
 
@@ -28,7 +28,7 @@ const Sidebar = styled.nav`
 const Logo = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
+  // justify-content: center;
   margin: 1rem 0;
 `;
 
@@ -88,18 +88,29 @@ const StyledLink = styled(Link)`
 
 function App() {
   const [activeNavItem, setActiveNavItem] = useState("browse");
-
+  const location = useLocation();
   const navItems = [
     { icon: "📊", text: "Browse", key: "browse", path: "/" },
     {
       icon: "💱",
-      text: "Create Loan",
-      key: "create-loan",
-      path: "/create-loan"
+      text: "Borrow",
+      key: "create",
+      path: "/create"
     },
     { icon: "💱", text: "Portfolio", key: "portfolio", path: "/portfolio" },
     { icon: "💱", text: "Profile", key: "profile", path: "/profile" }
   ];
+
+  const pageTitle =
+    location.pathname === "/"
+      ? "Browse Active Loans"
+      : location.pathname.includes("create")
+      ? "Create Borrow Request"
+      : location.pathname.includes("profile")
+      ? "Your Profile"
+      : location.pathname.includes("portfolio")
+      ? "Portfolio"
+      : "Loan Details";
 
   return (
     <>
@@ -120,7 +131,7 @@ function App() {
         </Sidebar>
         <MainContent>
           <Header>
-            <PageTitle>Browse Active Loans</PageTitle>
+            <PageTitle>{pageTitle}</PageTitle>
             <UserInfo>
               <Wallet />
             </UserInfo>
@@ -128,7 +139,7 @@ function App() {
           <Suspense fallback={<div>Loading</div>}>
             <Routes>
               <Route path="/" element={<BrowseLoan />} />
-              <Route path="/create-loan" element={<CreateLoan />} />
+              <Route path="/create" element={<CreateLoan />} />
               <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/portfolio" element={<Portfolio />} />
