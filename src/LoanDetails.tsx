@@ -1,50 +1,68 @@
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import { Loan, useStateContext } from "./context";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 const Container = styled.div`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   background-color: #1a1b1e;
   color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 `;
 
 const Title = styled.h1`
   font-size: 2.5rem;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  text-align: center;
   font-weight: 700;
+  color: #ffffff;
 `;
 
-const DetailSection = styled.div`
+const StatusBadge = styled.span<{ status: string }>`
+  background-color: ${(props) =>
+    props.status === "Pending" ? "#ff9800" : "#4caf50"};
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 600;
+`;
+
+const DetailsContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
 `;
 
 const DetailGroup = styled.div`
-  margin-bottom: 1.5rem;
+  background-color: #2c2d30;
+  border-radius: 16px;
+  padding: 1rem;
 `;
 
-const Label = styled.label`
+const Label = styled.span`
   display: block;
+  font-size: 1rem;
   font-weight: 600;
   color: #b3b3b3;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+  margin-bottom: 0.75rem;
 `;
 
 const Value = styled.div`
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 500;
   color: #ffffff;
-  background-color: #2c2d30;
-  padding: 1rem;
-  border-radius: 8px;
   display: flex;
   align-items: center;
 `;
@@ -52,84 +70,118 @@ const Value = styled.div`
 const TokenIcon = styled.img`
   width: 24px;
   height: 24px;
-  margin-right: 0.5rem;
-`;
-
-const StatusBadge = styled.span`
-  background-color: #4a4b4e;
-  color: #ffffff;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  margin-right: 0.75rem;
 `;
 
 const ActionButton = styled.button`
-  font-family: Poppins;
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1.25rem;
-  width: 100%;
-  margin-top: 2rem;
-  transition: background-color 0.3s;
-  background-color: #3a3b3e;
+  font-family: "Poppins", sans-serif;
+  background-color: #4caf50;
   color: #ffffff;
+  padding: 1.25rem 2.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 2.5rem;
 
   &:hover {
-    background-color: #4a4b4e;
+    background-color: #43a047;
   }
 `;
 
 const LoanDetailsPage = () => {
+  const { loanId } = useParams();
+  const { loans } = useStateContext();
+  const [price, setPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    const getUSDPrice = async () => {
+      try {
+        const response = await axios.get(
+          "https://api.portals.fi/v2/tokens?search=eth&platforms=native&networks=base",
+          {
+            headers: {
+              authorization: import.meta.env.VITE_PORTALS_API_KEY
+            }
+          }
+        );
+
+        setPrice(response.data?.tokens[0].price);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    getUSDPrice();
+  }, []);
+
+  const loanDetails: Loan = useMemo(() => {
+    if (loans?.length && loanId) {
+      return loans.filter((loan: Loan) => loan.id == loanId)?.[0];
+    }
+  }, [loanId, loans]);
+
+  const currentLTV = useMemo(() => {
+    if (loanDetails?.borrowAmount && loanDetails?.collateralAmount && price) {
+      return (
+        (loanDetails.borrowAmount /
+          (loanDetails.collateralAmount * Number(price))) *
+        100
+      );
+    }
+  }, [loanDetails, price]);
+
   return (
     <Container>
-      <Title>Loan Details</Title>
-      <DetailSection>
+      <Header>
+        <Title>Loan Details</Title>
+        <StatusBadge status={loanDetails?.status}>
+          {loanDetails?.status}
+        </StatusBadge>
+      </Header>
+      <DetailsContainer>
         <DetailGroup>
           <Label>Borrowed Amount</Label>
           <Value>
             <TokenIcon src="/usdc.png" alt="USDC" />
-            {/* {loanDetails.borrowedAmount} USDC */}
+            {loanDetails?.borrowAmount} USDC
           </Value>
         </DetailGroup>
         <DetailGroup>
           <Label>Collateral Amount</Label>
           <Value>
             <TokenIcon src="/ethereum.png" alt="ETH" />
-            {/* {loanDetails.collateralAmount} ETH */}
+            {loanDetails?.collateralAmount.toFixed(6)} ETH
           </Value>
         </DetailGroup>
-      </DetailSection>
-      <DetailSection>
         <DetailGroup>
           <Label>Interest Rate</Label>
-          <Value>{/* {loanDetails.interestRate}% */}</Value>
+          <Value>{loanDetails?.rate}%</Value>
         </DetailGroup>
         <DetailGroup>
           <Label>Loan Term</Label>
-          <Value>{/* {loanDetails.loanTerm} */}</Value>
+          <Value>{loanDetails?.duration} days</Value>
         </DetailGroup>
-      </DetailSection>
-      <DetailSection>
         <DetailGroup>
           <Label>Start Date</Label>
-          <Value>{/* {loanDetails.startDate} */}</Value>
+          <Value>{loanDetails?.startDate}</Value>
         </DetailGroup>
         <DetailGroup>
           <Label>End Date</Label>
-          <Value>{/* {loanDetails.endDate} */}</Value>
+          <Value>{loanDetails?.endDate}</Value>
         </DetailGroup>
-      </DetailSection>
-      <DetailGroup>
-        <Label>Loan Status</Label>
-        <Value>
-          <StatusBadge>{/* {loanDetails.status} */}</StatusBadge>
-        </Value>
-      </DetailGroup>
-      <ActionButton>Repay Loan</ActionButton>
+        <DetailGroup>
+          <Label>Current LTV</Label>
+          <Value>{currentLTV?.toFixed(4) ?? "-"}</Value>
+        </DetailGroup>
+        {/*  <DetailGroup>
+          <Label>End Date</Label>
+          <Value>{loanDetails?.endDate}</Value>
+        </DetailGroup> */}
+      </DetailsContainer>
+      <ActionButton>Transfer</ActionButton>
     </Container>
   );
 };

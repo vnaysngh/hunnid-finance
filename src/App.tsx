@@ -3,6 +3,7 @@ import "./App.css";
 import Wallet from "./Wallet";
 import { lazy, Suspense, useState } from "react";
 import { Link, Route, RouterProvider, Routes } from "react-router-dom";
+import LoanDetailsPage from "./LoanDetails";
 // import PortfolioDashboard from "./Portfolio";
 
 const CreateLoan = lazy(() => import("./LoanRequestForm"));
@@ -128,6 +129,7 @@ function App() {
             <Routes>
               <Route path="/" element={<BrowseLoan />} />
               <Route path="/create-loan" element={<CreateLoan />} />
+              <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/portfolio" element={<Portfolio />} />
             </Routes>

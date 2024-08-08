@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -133,12 +134,12 @@ const PageButton = styled.button`
 `;
 
 const BrowseLoansPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const loansPerPage = 5;
   const { loans } = useStateContext();
-
   const filteredLoans = loans.filter((loan: Loan) => {
     const matchesSearch = loan.owner
       .toLowerCase()
@@ -203,7 +204,7 @@ const BrowseLoansPage = () => {
               <StatusBadge>{loan.status}</StatusBadge>
             </Value>
           </LoanDetail>
-          <ActionButton onClick={() => console.log(`View loan ${index}`)}>
+          <ActionButton onClick={() => navigate(`loan/${loan.id}`)}>
             View Details
           </ActionButton>
         </LoanCard>
