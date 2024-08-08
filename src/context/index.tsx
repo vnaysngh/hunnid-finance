@@ -11,7 +11,6 @@ enum LoanStatus {
   Active,
   Repaid
 }
-console.log(LoanStatus[0]);
 
 export type Loan = {
   id: string;
@@ -34,7 +33,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   // connect to your contract
   const contract = getContract({
     client,
-    chain: defineChain(84532),
+    chain: defineChain(8453),
     address: "0x5968B982f0f3bA0a1fDF423A81cdF76488096B82"
   });
   const activeAccount = useActiveAccount();
@@ -63,9 +62,12 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         ethers.toBigInt(endDate)
       ]
     });
-    sendTransaction(transaction)
-      .then((res) => console.log("success", res))
-      .catch((e) => console.log(e));
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const { data: loans } = useReadContract({

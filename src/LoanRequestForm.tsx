@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import {
   useActiveAccount,
@@ -9,6 +9,7 @@ import { client } from "./client";
 import axios from "axios";
 import { useStateContext } from "./context";
 import { ethers } from "ethers";
+import TransactionConfirmationPopup from "./components/TransactionPopup";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -164,9 +165,10 @@ export type FormDetails = {
 };
 
 const LoanRequestForm = () => {
-  const [USDPrice, setUSDPrice] = useState<number | null>(null);
-  const [ETHUSDPrice, setETHSDPrice] = useState<number | null>(null);
-  const [LTV, setLTV] = useState<number | null>(70);
+  const [price, setPrice] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { publishLoan } = useStateContext();
@@ -209,11 +211,7 @@ const LoanRequestForm = () => {
           }
         );
 
-        const eth_usd_price =
-          response.data?.tokens[0].price *
-          Number(eth_walletBalance?.displayValue);
-        setETHSDPrice(response.data?.tokens[0].price);
-        setUSDPrice(eth_usd_price);
+        setPrice(response.data?.tokens[0].price);
       } catch (e) {
         console.error(e);
       }
@@ -222,46 +220,73 @@ const LoanRequestForm = () => {
     if (eth_walletBalance?.displayValue) getUSDBalance();
   }, [eth_walletBalance]);
 
+  const handleCloseModal = () => {
+    setError(null);
+    setTxHash(null);
+    setIsModalOpen(false);
+  };
+
   const handleFormFieldsChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    // setIsLoading(true)
+    setIsModalOpen(true);
+    setIsLoading(true);
     //86,400 total seconds in a day multiplied by chosen duration
-    await publishLoan({
+    const response = await publishLoan({
       ...form,
       borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
       collateralAmount: ethers.parseUnits(form.collateralAmount, 18)
     });
+
+    if (response.transactionHash) setTxHash(response.transactionHash);
+    else setError(response.message);
+    setIsLoading(false);
   };
 
   useEffect(() => {
-    if (!USDPrice || !ETHUSDPrice) return;
-    // Calculate Initial LTV
-    // console.log(ltv, "ltv new");
-    // setInitialLTV(ltv.toFixed(2) + "%");
-
-    // Calculate Liquidation Price
-    // const liqPrice = 0.83 * USDPrice;
-    // console.log(liqPrice, "ltv");
-    // setLiquidationPrice(liqPrice.toFixed(8));
-
-    // setTotalInterest(interest.toFixed(6));
-    // const ltv = Math.round((Number(form.borrowAmount) / USDPrice) * 100);
-    const collateralAmountInUSDC = Number(form.borrowAmount) / 0.7;
-    const collateralAmountInETH = collateralAmountInUSDC / ETHUSDPrice;
-    // setLTV(ltv);
-    // setForm({ ...form, collateralAmount: collateralAmountInETH.toString() });
+    if (!price) return;
+    const collateralAmountInUSDC = Number(form.borrowAmount) / 0.6;
+    const collateralAmountInETH = collateralAmountInUSDC / price;
+    setForm({ ...form, collateralAmount: collateralAmountInETH.toString() });
   }, [
     form.borrowAmount,
     form.collateralAmount,
     form.rate,
     form.duration,
-    eth_walletBalance,
-    USDPrice
+    eth_walletBalance
   ]);
+
+  const collateralAmountInUSD = useMemo(() => {
+    if (!price || !eth_walletBalance?.displayValue) return 0;
+    else return Number(price) * Number(eth_walletBalance?.displayValue);
+  }, [eth_walletBalance, price]);
+
+  const totalInterestAmount = useMemo(() => {
+    if (!form.borrowAmount || !form.rate || !form.collateralAmount) return 0;
+    else return (Number(form.borrowAmount) * Number(form.rate)) / 100;
+  }, [
+    collateralAmountInUSD,
+    form.borrowAmount,
+    form.collateralAmount,
+    form.rate
+  ]);
+
+  const totalRepaymentAmount = useMemo(() => {
+    if (!totalInterestAmount) return 0;
+    return Number(form.borrowAmount) + totalInterestAmount;
+  }, [totalInterestAmount]);
+
+  const liqiuidationPrice = useMemo(() => {
+    if (!totalRepaymentAmount || !form.collateralAmount) return 0;
+    const collateralRequired = totalRepaymentAmount / 0.75;
+    return collateralRequired / Number(form.collateralAmount);
+  }, [totalRepaymentAmount, form.collateralAmount]);
+
+  const isError =
+    Number(form.collateralAmount) > Number(eth_walletBalance?.displayValue);
 
   return (
     <Container>
@@ -304,8 +329,7 @@ const LoanRequestForm = () => {
               ETH
             </TokenSelect>
           </InputWrapper>
-          {Number(form.collateralAmount) >
-            Number(eth_walletBalance?.displayValue) && (
+          {isError && (
             <Label style={{ color: "red", marginTop: 5 }}>
               Insufficient Balance
             </Label>
@@ -314,7 +338,9 @@ const LoanRequestForm = () => {
             Balance:{" "}
             {eth_walletBalance
               ? `${Number(eth_walletBalance.displayValue).toFixed(6)} ETH ${
-                  USDPrice ? `(~$${USDPrice.toFixed(2)})` : ""
+                  collateralAmountInUSD
+                    ? `(~$${collateralAmountInUSD.toFixed(2)})`
+                    : ""
                 }`
               : "N/A"}
           </Balance>
@@ -364,21 +390,34 @@ const LoanRequestForm = () => {
       <AdditionalInfoContainer>
         <InfoItem>
           <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
-          <InfoValue style={{ color: "#318d46" }}>
-            {LTV ? `${LTV}%` : "-"}
+          <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>Liquidation Price (ETH/USDC)</InfoLabel>
+          <InfoValue style={{ color: "red" }}>
+            {liqiuidationPrice.toFixed(4)}
           </InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>Liquidation Price (ETH/BUSD)</InfoLabel>
-          <InfoValue style={{ color: "red" }}>{44}</InfoValue>
+          <InfoLabel>Total Interest Amount</InfoLabel>
+          <InfoValue>{totalInterestAmount} USDC</InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>Total Interest Amount</InfoLabel>
-          <InfoValue>{33} BUSD</InfoValue>
+          <InfoLabel>Total Repayment Amount</InfoLabel>
+          <InfoValue>{totalRepaymentAmount} USDC</InfoValue>
         </InfoItem>
       </AdditionalInfoContainer>
 
-      <StartButton onClick={handleSubmit}>Start Borrowing Now</StartButton>
+      <StartButton onClick={handleSubmit} disabled={isError}>
+        Start Borrowing Now
+      </StartButton>
+
+      <TransactionConfirmationPopup
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        txHash={txHash}
+        error={error}
+      />
     </Container>
   );
 };
