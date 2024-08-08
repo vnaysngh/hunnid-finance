@@ -101,7 +101,7 @@ function App() {
       <AppContainer>
         <Sidebar>
           <Logo>
-            <img src="/pigpig-finance.png" width={"80%"} />
+            <img src="/logo.png" width="80%" alt="Hunnid Finance Logo" />
           </Logo>
           {navItems.map((item) => (
             <StyledLink to={item.path}>
