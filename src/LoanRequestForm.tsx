@@ -7,9 +7,10 @@ import {
 } from "thirdweb/react";
 import { client } from "./client";
 import axios from "axios";
-import { useStateContext } from "./context";
+import { useStateContext, web3 } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
+import ABI from "./abi.json";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -173,8 +174,8 @@ const LoanRequestForm = () => {
   const activeChain = useActiveWalletChain();
   const { publishLoan } = useStateContext();
 
-  const borrowToken = "0xD4fA4dE9D8F8DB39EAf4de9A19bF6910F6B5bD60";
-  const collateralToken = "0x4200000000000000000000000000000000000006";
+  const borrowToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+  const collateralToken = "0x940181a94A35A4569E4529A3CDfB74e38FD98631";
 
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<FormDetails>({
@@ -189,7 +190,8 @@ const LoanRequestForm = () => {
   const { data: eth_walletBalance } = useWalletBalance({
     chain: activeChain,
     address: activeAccount?.address,
-    client: client
+    client: client,
+    tokenAddress: "0x940181a94A35A4569E4529A3CDfB74e38FD98631"
   });
 
   const { data: usdc_walletBalance } = useWalletBalance({
@@ -203,7 +205,7 @@ const LoanRequestForm = () => {
     const getUSDBalance = async () => {
       try {
         const response = await axios.get(
-          "https://api.portals.fi/v2/tokens?search=eth&platforms=native&networks=base",
+          "https://api.portals.fi/v2/tokens?ids=base:0x940181a94A35A4569E4529A3CDfB74e38FD98631",
           {
             headers: {
               authorization: import.meta.env.VITE_PORTALS_API_KEY
@@ -234,12 +236,12 @@ const LoanRequestForm = () => {
     e.preventDefault();
     setIsModalOpen(true);
     setIsLoading(true);
-    //86,400 total seconds in a day multiplied by chosen duration
     const response = await publishLoan({
       ...form,
       borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
       collateralAmount: ethers.parseUnits(form.collateralAmount, 18)
     });
+
     if (response?.transactionHash) setTxHash(response?.transactionHash);
     else setError(response.message);
     setIsLoading(false);

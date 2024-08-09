@@ -98,7 +98,7 @@ const ActionButton = styled.button`
 
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
-  const { loans } = useStateContext();
+  const { parsedLoans, loans, approveAndPayLoan } = useStateContext();
   const [price, setPrice] = useState<number | null>(null);
 
   useEffect(() => {
@@ -123,10 +123,10 @@ const LoanDetailsPage = () => {
   }, []);
 
   const loanDetails: Loan = useMemo(() => {
-    if (loans?.length && loanId) {
-      return loans.filter((loan: Loan) => loan.id == loanId)?.[0];
+    if (parsedLoans?.length && loanId) {
+      return parsedLoans.filter((loan: Loan) => loan.id == loanId)?.[0];
     }
-  }, [loanId, loans]);
+  }, [loanId, parsedLoans]);
 
   const currentLTV = useMemo(() => {
     if (loanDetails?.borrowAmount && loanDetails?.collateralAmount && price) {
@@ -143,6 +143,11 @@ const LoanDetailsPage = () => {
       `https://base.blockscout.com/address/${loanDetails.owner}`,
       "_blank"
     );
+  };
+
+  const handlePayLoan = async () => {
+    const rawLoan: Loan = loans.filter((loan: Loan) => loan.id == loanId)?.[0];
+    approveAndPayLoan(rawLoan);
   };
 
   return (
@@ -198,7 +203,7 @@ const LoanDetailsPage = () => {
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
       </DetailsContainer>
-      <ActionButton>Transfer</ActionButton>
+      <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
     </Container>
   );
 };

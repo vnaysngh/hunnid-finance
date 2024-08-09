@@ -146,7 +146,7 @@ const BrowseLoansPage = () => {
   const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const loansPerPage = 8;
-  const { loans } = useStateContext();
+  const { parsedLoans: loans } = useStateContext();
 
   const filteredLoans = loans.filter((loan: Loan) => {
     const matchesSearch = loan.owner
