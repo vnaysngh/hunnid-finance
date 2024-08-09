@@ -1,27 +1,21 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import {
-  useActiveAccount,
-  useActiveWalletChain,
-  useWalletBalance
-} from "thirdweb/react";
-import { client } from "./client";
-import axios from "axios";
+import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { useStateContext, web3 } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
 import TokenSelectionPopup from "./TokenSelectPopup";
 
 const Container = styled.div`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   width: 100%;
   max-width: 80%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem;
   background-color: #1a1b1e;
   color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 
   @media only screen and (min-width: 1600px) {
     max-width: 1200px;
@@ -30,16 +24,16 @@ const Container = styled.div`
 
 const Title = styled.h1`
   font-size: 2.5rem;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  text-align: center;
   font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2.5rem;
 `;
 
 const FormSection = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+  margin-bottom: 2.5rem;
 `;
 
 const InputGroup = styled.div`
@@ -59,14 +53,14 @@ const InputWrapper = styled.div`
   display: flex;
   align-items: center;
   background-color: #2c2d30;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
 `;
 
 const Input = styled.input`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   width: 100%;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   border: none;
   background-color: transparent;
   color: #ffffff;
@@ -111,45 +105,57 @@ const TermButtons = styled.div`
 `;
 
 const TermButton = styled.button<{ active: boolean }>`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   padding: 0.75rem 1.5rem;
-  background-color: ${(props) => (props.active ? "#4a4b4e" : "#2c2d30")};
+  background-color: ${(props) => (props.active ? "#3a3b3e" : "#2c2d30")};
   color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #4a4b4e;
+    background-color: #3a3b3e;
   }
 `;
 
 const StartButton = styled.button`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   padding: 1rem 2rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   font-size: 1.25rem;
   width: 100%;
   margin-top: 2rem;
+  background-color: #4d6ac1;
+  color: #ffffff;
   transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #4a4b4e;
+  }
+
+  &:disabled {
+    background-color: #2c2d30;
+    cursor: not-allowed;
+  }
 `;
 
 const AdditionalInfoContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
   margin-top: 2rem;
-  padding: 1rem;
-  background-color: #2c2d30;
-  border-radius: 8px;
 `;
 
 const InfoItem = styled.div`
-  text-align: center;
+  background-color: #2c2d30;
+  border-radius: 16px;
+  padding: 1.5rem;
 `;
 
 const InfoLabel = styled.div`
@@ -174,14 +180,11 @@ export type FormDetails = {
 };
 
 const LoanRequestForm = () => {
-  const [price, setPrice] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTokenSelect, setIsTokenSelect] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const [selectedType, setSelectedType] = useState("");
-  const activeAccount = useActiveAccount();
-  const activeChain = useActiveWalletChain();
+  const [selectedType, setSelectedType] = useState<string>("");
   const { publishLoan, portfolioTokens } = useStateContext();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -212,40 +215,6 @@ const LoanRequestForm = () => {
     if (portfolioTokens?.length) setSelectedTokens();
   }, [portfolioTokens]);
 
-  const { data: eth_walletBalance } = useWalletBalance({
-    chain: activeChain,
-    address: activeAccount?.address,
-    client: client
-  });
-
-  const { data: usdc_walletBalance } = useWalletBalance({
-    chain: activeChain,
-    address: activeAccount?.address,
-    client: client,
-    tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-  });
-
-  useEffect(() => {
-    const getUSDBalance = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.portals.fi/v2/tokens?ids=base:0x940181a94A35A4569E4529A3CDfB74e38FD98631",
-          {
-            headers: {
-              authorization: import.meta.env.VITE_PORTALS_API_KEY
-            }
-          }
-        );
-
-        setPrice(response.data?.tokens[0].price);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    if (eth_walletBalance?.displayValue) getUSDBalance();
-  }, [eth_walletBalance]);
-
   const handleCloseModal = () => {
     setError(null);
     setTxHash(null);
@@ -272,22 +241,26 @@ const LoanRequestForm = () => {
   };
 
   useEffect(() => {
-    if (!price) return;
+    if (!form.selectedTokenB.price) return;
     const collateralAmountInUSDC = Number(form.borrowAmount) / 0.6;
-    const collateralAmountInETH = collateralAmountInUSDC / price;
+    const collateralAmountInETH =
+      collateralAmountInUSDC / form.selectedTokenB.price;
     setForm({ ...form, collateralAmount: collateralAmountInETH.toString() });
   }, [
     form.borrowAmount,
     form.collateralAmount,
     form.rate,
     form.duration,
-    eth_walletBalance
+    form.selectedTokenB.balance
   ]);
 
   const collateralAmountInUSD = useMemo(() => {
-    if (!price || !eth_walletBalance?.displayValue) return 0;
-    else return Number(price) * Number(eth_walletBalance?.displayValue);
-  }, [eth_walletBalance, price]);
+    if (!form.selectedTokenB.price || !form.selectedTokenB.balance) return 0;
+    else
+      return (
+        Number(form.selectedTokenB.price) * Number(form.selectedTokenB.balance)
+      );
+  }, [form.selectedTokenB.balance, form.selectedTokenB.price]);
 
   const totalInterestAmount = useMemo(() => {
     if (!form.borrowAmount || !form.rate || !form.collateralAmount) return 0;
@@ -306,12 +279,12 @@ const LoanRequestForm = () => {
 
   const liqiuidationPrice = useMemo(() => {
     if (!totalRepaymentAmount || !form.collateralAmount) return 0;
-    const collateralRequired = totalRepaymentAmount / 0.75;
+    const collateralRequired = totalRepaymentAmount / 0.83;
     return collateralRequired / Number(form.collateralAmount);
   }, [totalRepaymentAmount, form.collateralAmount]);
 
   const isError =
-    Number(form.collateralAmount) > Number(eth_walletBalance?.displayValue);
+    Number(form.collateralAmount) > Number(form.selectedTokenB.balance);
 
   const handleTokenSelectPopup = (type: string) => {
     setIsTokenSelect(true);
@@ -319,15 +292,24 @@ const LoanRequestForm = () => {
   };
 
   const handleTokenSelect = (token: any) => {
-    setForm({
-      ...form,
-      [selectedType]: token
-    });
+    if (
+      !selectedType ||
+      form["selectedTokenA"]?.address === token.address ||
+      form["selectedTokenB"]?.address === token.address
+    )
+      return;
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      [selectedType as "selectedTokenA" | "selectedTokenB"]: token
+    }));
+
     setIsTokenSelect(false);
   };
 
   return (
     <Container>
+      <Title>Request a Loan</Title>
       <FormSection>
         <InputGroup>
           <Label>I want to borrow</Label>
@@ -349,14 +331,14 @@ const LoanRequestForm = () => {
           <Balance>
             Balance:{" "}
             {form.selectedTokenA.name
-              ? `${form.selectedTokenA.balance.toFixed(3)}   ${
+              ? `${form.selectedTokenA.balance.toFixed(3)} ${
                   form.selectedTokenA?.symbol
                 } 
-                ${
-                  form.selectedTokenA.balanceUSD
-                    ? `(~$${form.selectedTokenA.balanceUSD.toFixed(2)})`
-                    : ""
-                }`
+              ${
+                form.selectedTokenA.balanceUSD
+                  ? `(~$${form.selectedTokenA.balanceUSD.toFixed(2)})`
+                  : ""
+              }`
               : "N/A"}
           </Balance>
         </InputGroup>
@@ -386,14 +368,14 @@ const LoanRequestForm = () => {
           <Balance>
             Balance:{" "}
             {form.selectedTokenB.name
-              ? `${form.selectedTokenB.balance.toFixed(3)}   ${
+              ? `${form.selectedTokenB.balance.toFixed(3)} ${
                   form.selectedTokenB?.symbol
                 } 
-                ${
-                  form.selectedTokenB.balanceUSD
-                    ? `(~$${form.selectedTokenB.balanceUSD.toFixed(2)})`
-                    : ""
-                }`
+              ${
+                form.selectedTokenB.balanceUSD
+                  ? `(~$${form.selectedTokenB.balanceUSD.toFixed(2)})`
+                  : ""
+              }`
               : "N/A"}
           </Balance>
         </InputGroup>
@@ -445,18 +427,37 @@ const LoanRequestForm = () => {
           <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>Liquidation Price (ETH/USDC)</InfoLabel>
+          <InfoLabel>
+            Liquidation Price ({form.selectedTokenB.symbol}/
+            {form.selectedTokenA.symbol})
+          </InfoLabel>
           <InfoValue style={{ color: "red" }}>
             {liqiuidationPrice.toFixed(4)}
           </InfoValue>
         </InfoItem>
         <InfoItem>
           <InfoLabel>Total Interest Amount</InfoLabel>
-          <InfoValue>{totalInterestAmount} USDC</InfoValue>
+          <InfoValue>
+            {totalInterestAmount} {form.selectedTokenA.symbol}
+          </InfoValue>
         </InfoItem>
         <InfoItem>
           <InfoLabel>Total Repayment Amount</InfoLabel>
-          <InfoValue>{totalRepaymentAmount} USDC</InfoValue>
+          <InfoValue>
+            {totalRepaymentAmount} {form.selectedTokenA.symbol}
+          </InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>
+            Price ({form.selectedTokenB.symbol}/{form.selectedTokenA.symbol})
+          </InfoLabel>
+          <InfoValue>
+            {form.selectedTokenB.price
+              ? (form.selectedTokenB.price / form.selectedTokenA.price).toFixed(
+                  6
+                )
+              : "N/A"}
+          </InfoValue>
         </InfoItem>
       </AdditionalInfoContainer>
 

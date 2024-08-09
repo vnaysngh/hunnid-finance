@@ -88,15 +88,10 @@ const StyledLink = styled(Link)`
 function App() {
   const location = useLocation();
   const navItems = [
-    { icon: "📊", text: "Browse", key: "browse", path: "/" },
-    {
-      icon: "💱",
-      text: "Borrow",
-      key: "create",
-      path: "/create"
-    },
-    { icon: "💱", text: "Portfolio", key: "portfolio", path: "/portfolio" },
-    { icon: "💱", text: "Profile", key: "profile", path: "/profile" }
+    { icon: "🔍", text: "Browse", key: "browse", path: "/" },
+    { icon: "💰", text: "Borrow", key: "create", path: "/create" },
+    { icon: "📂", text: "Portfolio", key: "portfolio", path: "/portfolio" },
+    { icon: "👤", text: "Profile", key: "profile", path: "/profile" }
   ];
 
   const routeMappings: Record<string, { title: string; navItem: string }> = {
@@ -126,7 +121,7 @@ function App() {
             {navItems.map((item) => (
               <StyledLink to={item.path}>
                 <NavItem key={item.key} active={activeNavItem === item.key}>
-                  {item.text}
+                  {item.icon} {item.text}
                 </NavItem>
               </StyledLink>
             ))}
