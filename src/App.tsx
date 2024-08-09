@@ -29,7 +29,6 @@ const Sidebar = styled.nav`
 const Logo = styled.div`
   display: flex;
   align-items: center;
-  // justify-content: center;
   margin: 1rem 0;
 `;
 
@@ -50,6 +49,35 @@ const NavItem = styled.div<{ active?: boolean }>`
 
 const NavItemsContainer = styled.div`
   margin-top: 5rem;
+`;
+
+// Updated styled components for partnered logos section
+const PartnerLogosContainer = styled.div`
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid #2c2d30;
+`;
+
+const PartnerLogosTitle = styled.h3`
+  font-size: 2rem;
+  color: #a0a0a0;
+  margin-bottom: 1rem;
+`;
+
+const PartnerLogoList = styled.div`
+  background: #fff2dbed;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const PartnerLogo = styled.img`
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  height: 6rem;
 `;
 
 const MainContent = styled.main`
@@ -112,45 +140,60 @@ function App() {
     ? routeMappings[currentRoute]
     : routeMappings["browse"];
 
-  return (
-    <>
-      <AppContainer>
-        <Sidebar>
-          <Logo>
-            <img src="/logo.png" width="80%" alt="Hunnid Finance Logo" />
-          </Logo>
-          <NavItemsContainer>
-            {navItems.map((item) => (
-              <StyledLink to={item.path}>
-                <NavItem key={item.key} active={activeNavItem === item.key}>
-                  {item.icon} {item.text}
-                </NavItem>
-              </StyledLink>
-            ))}
-          </NavItemsContainer>
-        </Sidebar>
-        <MainContent>
-          <OnboardingPopup />
+  // Sample partner logos (replace with actual partner logos)
+  const partnerLogos = [
+    {
+      src: "https://cdn.prod.website-files.com/637232ff20f97141fc60d89c/6373de4372627430292985b2_logo.svg",
+      alt: "Blockscout"
+    },
+    { src: "/base-logo.png", alt: "Base" },
+    { src: "/thirdweb-logo.png", alt: "Thirdweb" }
+  ];
 
-          <Header>
-            <PageTitle>{pageTitle}</PageTitle>
-            <UserInfo>
-              <Wallet />
-            </UserInfo>
-          </Header>
-          <Suspense fallback={<div>Loading</div>}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/browse" />} />
-              <Route path="/browse" element={<BrowseLoan />} />
-              <Route path="/create" element={<CreateLoan />} />
-              <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/portfolio" element={<Portfolio />} />
-            </Routes>
-          </Suspense>
-        </MainContent>
-      </AppContainer>
-    </>
+  return (
+    <AppContainer>
+      <Sidebar>
+        <Logo>
+          <img src="/logo.png" width="80%" alt="Hunnid Finance Logo" />
+        </Logo>
+        <NavItemsContainer>
+          {navItems.map((item) => (
+            <StyledLink to={item.path} key={item.key}>
+              <NavItem active={activeNavItem === item.key}>
+                {item.icon} {item.text}
+              </NavItem>
+            </StyledLink>
+          ))}
+        </NavItemsContainer>
+        <PartnerLogosContainer>
+          <PartnerLogosTitle>Powered By</PartnerLogosTitle>
+          <PartnerLogoList>
+            {partnerLogos.map((logo, index) => (
+              <PartnerLogo key={index} src={logo.src} alt={logo.alt} />
+            ))}
+          </PartnerLogoList>
+        </PartnerLogosContainer>
+      </Sidebar>
+      <MainContent>
+        <OnboardingPopup />
+        <Header>
+          <PageTitle>{pageTitle}</PageTitle>
+          <UserInfo>
+            <Wallet />
+          </UserInfo>
+        </Header>
+        <Suspense fallback={<div>Loading</div>}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/browse" />} />
+            <Route path="/browse" element={<BrowseLoan />} />
+            <Route path="/create" element={<CreateLoan />} />
+            <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+          </Routes>
+        </Suspense>
+      </MainContent>
+    </AppContainer>
   );
 }
 
