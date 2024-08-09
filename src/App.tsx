@@ -109,7 +109,7 @@ function App() {
       : location.pathname.includes("profile")
       ? "Your Profile"
       : location.pathname.includes("portfolio")
-      ? "Portfolio"
+      ? "Portfolio Dashboard"
       : "Loan Details";
 
   return (

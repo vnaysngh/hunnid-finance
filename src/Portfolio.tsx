@@ -1,182 +1,151 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import styled from "styled-components";
+import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
+import { useStateContext } from "./context";
 
-const DashboardContainer = styled.div`
-  font-family: Poppins;
+const Container = styled.div`
+  font-family: "Poppins", sans-serif;
   width: 100%;
-  max-width: 80%;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   background-color: #1a1b1e;
   color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 `;
 
 const Title = styled.h1`
   font-size: 2.5rem;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  text-align: center;
   font-weight: 700;
+  color: #fff;
+  margin: 0;
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
+const TokensContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
 `;
 
-const TableHeader = styled.th`
-  text-align: left;
-  padding: 1rem;
-  color: #b3b3b3;
-  font-weight: 600;
-  font-size: 1rem;
-`;
-
-const TokenItem = styled.tr`
+const TokenItem = styled.div`
   background-color: #2c2d30;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #3a3b3e;
-  }
-`;
-
-const TableCell = styled.td`
+  border-radius: 16px;
   padding: 1rem;
-  color: #ffffff;
-  font-size: 0.875rem;
-
-  &:first-child {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-  }
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
 `;
 
 const TokenInfo = styled.div`
   display: flex;
   align-items: center;
+  gap: 1rem;
 `;
 
 const TokenIcon = styled.img`
-  width: 30px;
-  height: 30px;
-  margin-right: 1rem;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
 `;
 
+const TokenDetails = styled.div``;
+
 const TokenName = styled.div`
-  font-weight: bold;
+  font-weight: 600;
   color: #ffffff;
+  font-size: 1.1rem;
 `;
 
 const TokenSymbol = styled.div`
   color: #b3b3b3;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
 `;
 
-const LendButton = styled.button`
-  font-family: Poppins;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.875rem;
-  background-color: #3a3b3e;
-  color: #ffffff;
-  transition: background-color 0.3s;
+const TokenBalance = styled.div`
+  text-align: right;
+`;
 
-  &:hover {
-    background-color: #4a4b4e;
-  }
+const TokenAmount = styled.div`
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffffff;
+`;
+
+const TokenValue = styled.div`
+  font-size: 0.9rem;
+  color: #b3b3b3;
+`;
+
+const TotalBalanceCard = styled.div`
+  background-color: #2c2d30;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const BalanceLabel = styled.div`
+  font-size: 1.2rem;
+  color: #b3b3b3;
+  margin-right: 0.5rem;
+`;
+
+const TotalValue = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4caf50;
 `;
 
 const PortfolioDashboard = () => {
-  const tokens = [
-    {
-      name: "BRETT",
-      symbol: "Brett",
-      percentage: 23.43,
-      price: 0.11,
-      priceChange: -9.75,
-      balance: 72.31,
-      amount: "687.8444 BRETT"
-    },
-    {
-      name: "WELL",
-      symbol: "WELL",
-      percentage: 18.38,
-      price: 0.04,
-      priceChange: -13.43,
-      balance: 56.74,
-      amount: "1,531.1195 WELL"
-    },
-    {
-      name: "AERO",
-      symbol: "Aerodrome",
-      percentage: 17.95,
-      price: 0.73,
-      priceChange: -8.9,
-      balance: 55.41,
-      amount: "76.3126 AERO"
-    },
-    {
-      name: "VIRTUAL",
-      symbol: "Virtual Protocol",
-      percentage: 10.65,
-      price: 0.04,
-      priceChange: -3.14,
-      balance: 32.88,
-      amount: "741.7971 VIRTUAL"
-    }
-  ];
+  const { portfolioTokens, totalValue, address } = useStateContext();
 
   return (
-    <DashboardContainer>
-      <Title>Portfolio Dashboard</Title>
-      <Table>
-        <thead>
-          <tr>
-            <TableHeader>Token</TableHeader>
-            <TableHeader>Amount (USD)</TableHeader>
-            <TableHeader>Balance</TableHeader>
-            <TableHeader>Portfolio %</TableHeader>
-            <TableHeader>Action</TableHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {tokens.map((token, index) => (
+    <Container>
+      <Header>
+        <Title>
+          Base: {address?.slice(0, 6)}...
+          {address?.slice(-4)}
+        </Title>
+        <TotalBalanceCard>
+          <BalanceLabel>Total Balance: </BalanceLabel>
+          <TotalValue>${totalValue.toFixed(2)}</TotalValue>
+        </TotalBalanceCard>
+      </Header>
+      <TokensContainer>
+        {portfolioTokens &&
+          portfolioTokens.map((token: any, index: number) => (
             <TokenItem key={index}>
-              <TableCell>
-                <TokenInfo>
-                  <TokenIcon
-                    src={`/api/placeholder/30?text=${token.symbol[0]}`}
-                    alt={token.name}
-                  />
-                  <div>
-                    <TokenName>{token.name}</TokenName>
-                    <TokenSymbol>{token.symbol}</TokenSymbol>
-                  </div>
-                </TokenInfo>
-              </TableCell>
-              <TableCell>${token.balance.toFixed(2)}</TableCell>
-              <TableCell>{token.amount}</TableCell>
-              <TableCell>{token.percentage.toFixed(2)}%</TableCell>
-              <TableCell>
-                <LendButton>Lend</LendButton>
-              </TableCell>
+              <TokenInfo>
+                <TokenIcon src={token.image} alt={token.name} />
+                <TokenDetails>
+                  <TokenName>{token.name}</TokenName>
+                  <TokenSymbol>{token.symbol}</TokenSymbol>
+                </TokenDetails>
+              </TokenInfo>
+              <div /> {/* Spacer */}
+              <TokenBalance>
+                <TokenAmount>
+                  {parseFloat(token.balance).toFixed(6)} {token.symbol}
+                </TokenAmount>
+                <TokenValue>
+                  ${parseFloat(token.balanceUSD).toFixed(2)}
+                </TokenValue>
+              </TokenBalance>
             </TokenItem>
           ))}
-        </tbody>
-      </Table>
-    </DashboardContainer>
+      </TokensContainer>
+    </Container>
   );
 };
 

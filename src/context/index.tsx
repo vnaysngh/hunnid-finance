@@ -1,4 +1,4 @@
-import { useContext, createContext, useMemo } from "react";
+import { useContext, createContext, useMemo, useEffect, useState } from "react";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { defineChain, getContract, prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
@@ -9,6 +9,7 @@ import Web3 from "web3";
 import ABI from "../abi.json";
 
 import { injectedProvider } from "thirdweb/wallets";
+import axios from "axios";
 
 const metamaskProvider = injectedProvider("io.metamask");
 const windowObj: any = window;
@@ -38,6 +39,8 @@ export type Loan = {
 const StateContext = createContext<any>({});
 
 export const StateContextProvider = ({ children }: { children: any }) => {
+  const [portfolioTokens, setPortfolioTokens] = useState([]);
+  const [totalValue, setTotalValue] = useState(0);
   const { mutateAsync: sendTransaction } = useSendTransaction();
   // connect to your contract
   const contract = getContract({
@@ -50,6 +53,34 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   //  const token_contract = ethers.Contract
 
   const activeAccount = useActiveAccount();
+
+  useEffect(() => {
+    const getTokens = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.portals.fi/v2/account?owner=${activeAccount?.address}&networks=base&networks=base`,
+          {
+            headers: {
+              authorization: import.meta.env.VITE_PORTALS_API_KEY
+            }
+          }
+        );
+
+        const TokensWithBalances = response.data.balances;
+        setPortfolioTokens(TokensWithBalances);
+
+        const total = TokensWithBalances.reduce(
+          (sum: number, token: any) => sum + parseFloat(token.balanceUSD),
+          0
+        );
+        setTotalValue(total);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    if (activeAccount?.address) getTokens();
+  }, [activeAccount]);
 
   const publishLoan = async (form: FormDetails) => {
     if (!activeAccount?.address) {
@@ -164,7 +195,9 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         loans,
         parsedLoans,
         publishLoan,
-        approveAndPayLoan
+        approveAndPayLoan,
+        portfolioTokens,
+        totalValue
       }}
     >
       {children}
