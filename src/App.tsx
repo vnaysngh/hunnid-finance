@@ -2,7 +2,7 @@ import styled from "styled-components";
 import "./App.css";
 import Wallet from "./Wallet";
 import { lazy, Suspense, useState } from "react";
-import { Link, Route, Routes, useLocation } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./LoanDetails";
 // import PortfolioDashboard from "./Portfolio";
 
@@ -39,7 +39,6 @@ const NavItem = styled.div<{ active?: boolean }>`
   margin-bottom: 10px;
   cursor: pointer;
   border-radius: 8px;
-  text-decoration: 
   background-color: ${(props) => (props.active ? "#2c2d30" : "transparent")};
   transition: background-color 0.3s;
 
@@ -87,7 +86,6 @@ const StyledLink = styled(Link)`
 `;
 
 function App() {
-  const [activeNavItem, setActiveNavItem] = useState("browse");
   const location = useLocation();
   const navItems = [
     { icon: "📊", text: "Browse", key: "browse", path: "/" },
@@ -101,16 +99,21 @@ function App() {
     { icon: "💱", text: "Profile", key: "profile", path: "/profile" }
   ];
 
-  const pageTitle =
-    location.pathname === "/"
-      ? "Browse Active Loans"
-      : location.pathname.includes("create")
-      ? "Create Borrow Request"
-      : location.pathname.includes("profile")
-      ? "Your Profile"
-      : location.pathname.includes("portfolio")
-      ? "Portfolio Dashboard"
-      : "Loan Details";
+  const routeMappings: Record<string, { title: string; navItem: string }> = {
+    browse: { title: "Browse Active Loans", navItem: "browse" },
+    create: { title: "Create Borrow Request", navItem: "create" },
+    profile: { title: "User Profile", navItem: "profile" },
+    portfolio: { title: "Portfolio Dashboard", navItem: "portfolio" }
+  };
+
+  const currentRoute = Object.keys(routeMappings).find((route) =>
+    location.pathname.includes(route)
+  );
+
+  // Ensure currentRoute is defined; if not, default to 'browse'
+  const { title: pageTitle, navItem: activeNavItem } = currentRoute
+    ? routeMappings[currentRoute]
+    : routeMappings["browse"];
 
   return (
     <>
@@ -138,7 +141,8 @@ function App() {
           </Header>
           <Suspense fallback={<div>Loading</div>}>
             <Routes>
-              <Route path="/" element={<BrowseLoan />} />
+              <Route path="/" element={<Navigate to="/browse" />} />
+              <Route path="/browse" element={<BrowseLoan />} />
               <Route path="/create" element={<CreateLoan />} />
               <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
               <Route path="/profile" element={<Profile />} />

@@ -10,7 +10,6 @@ import axios from "axios";
 import { useStateContext, web3 } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
-import ABI from "./abi.json";
 import TokenSelectionPopup from "./TokenSelectPopup";
 
 const Container = styled.div`
@@ -23,6 +22,10 @@ const Container = styled.div`
   color: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  @media only screen and (min-width: 1600px) {
+    max-width: 1200px;
+  }
 `;
 
 const Title = styled.h1`

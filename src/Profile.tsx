@@ -1,39 +1,50 @@
+import React, { useMemo } from "react";
 import styled from "styled-components";
+import { Loan, useStateContext } from "./context"; // Assuming you have a similar context setup
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
-  font-family: Poppins;
+  font-family: "Poppins", sans-serif;
   width: 100%;
-  max-width: 80%;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   background-color: #1a1b1e;
   color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 `;
 
 const Title = styled.h1`
   font-size: 2.5rem;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  text-align: center;
   font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-const ProfileSection = styled.div`
+const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 2rem;
 `;
 
 const Avatar = styled.img`
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  margin-right: 2rem;
+  margin-right: 1rem;
 `;
-
-const UserInfo = styled.div``;
 
 const UserName = styled.h2`
   font-size: 1.5rem;
@@ -45,24 +56,50 @@ const UserAddress = styled.p`
   color: #b3b3b3;
 `;
 
+const StatisticsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+`;
+
+const StatBox = styled.div`
+  background-color: #2c2d30;
+  border-radius: 16px;
+  padding: 1rem;
+  text-align: center;
+`;
+
+const StatLabel = styled.span`
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #b3b3b3;
+  margin-bottom: 0.5rem;
+`;
+
+const StatValue = styled.div`
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #ffffff;
+`;
+
 const LoansSection = styled.div`
   margin-top: 2rem;
 `;
 
 const LoanCard = styled.div`
   background-color: #2c2d30;
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
-  text-align: left;
-  gap: 1rem;
   align-items: center;
 `;
 
 const LoanDetail = styled.div`
-  font-size: 0.875rem;
+  font-size: 1rem;
 `;
 
 const Label = styled.span`
@@ -78,30 +115,35 @@ const Value = styled.span`
 `;
 
 const TokenIcon = styled.img`
-  width: 16px;
-  height: 16px;
-  margin-right: 0.25rem;
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
 `;
 
-const StatusBadge = styled.span`
-  background-color: #4a4b4e;
+const StatusBadge = styled.span<{ status: string }>`
+  background-color: ${(props) =>
+    props.status === "Active"
+      ? "#4caf50"
+      : props.status === "Pending"
+      ? "#ff9800"
+      : "#f44336"};
   color: #ffffff;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
 `;
 
 const ActionButton = styled.button`
-  font-family: Poppins;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.875rem;
+  font-family: "Poppins", sans-serif;
   background-color: #3a3b3e;
   color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: background-color 0.3s;
 
   &:hover {
@@ -109,95 +151,90 @@ const ActionButton = styled.button`
   }
 `;
 
-// Sample user profile data
-const userProfile = {
-  name: "Ethan Blockchain",
-  address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-  avatarUrl: "https://i.pravatar.cc/300"
-};
-
-// Sample active loans data
-const activeLoans = [
-  {
-    id: "loan1",
-    borrowedAmount: "5000",
-    collateralAmount: "2.5",
-    startDate: "2023-07-15",
-    endDate: "2023-08-15",
-    interestRate: "5.5",
-    status: "Active"
-  },
-  {
-    id: "loan2",
-    borrowedAmount: "10000",
-    collateralAmount: "5",
-    startDate: "2023-07-20",
-    endDate: "2023-08-20",
-    interestRate: "6",
-    status: "Active"
-  },
-  {
-    id: "loan3",
-    borrowedAmount: "2500",
-    collateralAmount: "1.25",
-    startDate: "2023-07-25",
-    endDate: "2023-08-25",
-    interestRate: "5",
-    status: "Active"
-  },
-  {
-    id: "loan4",
-    borrowedAmount: "7500",
-    collateralAmount: "3.75",
-    startDate: "2023-07-30",
-    endDate: "2023-08-30",
-    interestRate: "5.75",
-    status: "Active"
-  }
-];
-
-export { userProfile, activeLoans };
-
 const UserProfilePage = () => {
+  const navigate = useNavigate();
+  const { parsedLoans } = useStateContext(); // Assuming you have this in your context
+
+  const userProfile = {
+    name: "Ethan Blockchain",
+    address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    avatarUrl: "https://i.pravatar.cc/300"
+  };
+
+  const statistics = useMemo(() => {
+    const activeLoans = parsedLoans.filter(
+      (loan: Loan) => loan.status === "Active"
+    ).length;
+    const pendingLoans = parsedLoans.filter(
+      (loan: Loan) => loan.status === "Pending"
+    ).length;
+    const closedLoans = parsedLoans.filter(
+      (loan: Loan) => loan.status === "Closed"
+    ).length;
+
+    return { activeLoans, pendingLoans, closedLoans };
+  }, [parsedLoans]);
+
+  const openExplorer = () => {
+    window.open(
+      `https://base.blockscout.com/address/${userProfile.address}`,
+      "_blank"
+    );
+  };
+
+  const handleLoanClick = (loanId: string) => {
+    navigate(`/loan/${loanId}`);
+  };
+
   return (
     <Container>
-      <Title>User Profile</Title>
-      <ProfileSection>
-        <Avatar src={userProfile.avatarUrl} alt={userProfile.name} />
-        <UserInfo>
+      <Header>
+        <Title onClick={openExplorer}>User Profile</Title>
+      </Header>
+      <ProfileInfo>
+        <div>
           <UserName>{userProfile.name}</UserName>
           <UserAddress>{userProfile.address}</UserAddress>
-        </UserInfo>
-      </ProfileSection>
+        </div>
+      </ProfileInfo>
+      <StatisticsContainer>
+        <StatBox>
+          <StatLabel>Active Loans</StatLabel>
+          <StatValue>{statistics.activeLoans}</StatValue>
+        </StatBox>
+        <StatBox>
+          <StatLabel>Pending Loans</StatLabel>
+          <StatValue>{statistics.pendingLoans}</StatValue>
+        </StatBox>
+        <StatBox>
+          <StatLabel>Closed Loans</StatLabel>
+          <StatValue>{statistics.closedLoans}</StatValue>
+        </StatBox>
+      </StatisticsContainer>
       <LoansSection>
-        <h2>Active Loans</h2>
-        {activeLoans.map((loan, index) => (
+        <h2>Loans</h2>
+        {parsedLoans.map((loan: Loan, index: number) => (
           <LoanCard key={index}>
             <LoanDetail>
               <Label>Borrowed</Label>
               <Value>
                 <TokenIcon src="/usdc.png" alt="USDC" />
-                {loan.borrowedAmount} USDC
+                {loan.borrowAmount} USDC
               </Value>
             </LoanDetail>
             <LoanDetail>
               <Label>Collateral</Label>
               <Value>
                 <TokenIcon src="/ethereum.png" alt="ETH" />
-                {loan.collateralAmount} ETH
+                {loan.collateralAmount.toFixed(6)} ETH
               </Value>
             </LoanDetail>
             <LoanDetail>
               <Label>End Date</Label>
               <Value>{loan.endDate}</Value>
             </LoanDetail>
-            <LoanDetail>
-              <Label>Status</Label>
-              <Value>
-                <StatusBadge>{loan.status}</StatusBadge>
-              </Value>
-            </LoanDetail>
-            <ActionButton onClick={() => console.log(`View loan ${index}`)}>
+            <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
+            <ActionButton onClick={() => handleLoanClick(loan.id)}>
               View Details
             </ActionButton>
           </LoanCard>

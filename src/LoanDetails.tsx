@@ -98,7 +98,7 @@ const ActionButton = styled.button`
 
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
-  const { parsedLoans, loans, approveAndPayLoan } = useStateContext();
+  const { parsedLoans, loans, approveAndPayLoan, address } = useStateContext();
   const [price, setPrice] = useState<number | null>(null);
 
   useEffect(() => {
@@ -203,7 +203,9 @@ const LoanDetailsPage = () => {
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
       </DetailsContainer>
-      <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+      {loanDetails.owner !== address && (
+        <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+      )}
     </Container>
   );
 };
