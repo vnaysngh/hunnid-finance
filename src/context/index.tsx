@@ -88,7 +88,10 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       return;
     }
 
-    const tokenContract = new web3.eth.Contract(ABI, form.collateralToken);
+    const tokenContract = new web3.eth.Contract(
+      ABI,
+      form.selectedTokenB.address
+    );
 
     const accounts = await web3.eth.getAccounts();
     const userAccount = accounts[0];
@@ -108,8 +111,8 @@ export const StateContextProvider = ({ children }: { children: any }) => {
           "function createLoan(address _owner, address _borrowToken, address _collateralToken, uint256 _borrowAmount, uint256 _collateralAmount, uint256 _rate, uint256 _duration, uint256 _startDate, uint256 _endDate) returns (uint256)",
         params: [
           activeAccount?.address,
-          form.borrowToken,
-          form.collateralToken,
+          form.selectedTokenA.address,
+          form.selectedTokenB.address,
           ethers.toBigInt(form.borrowAmount),
           ethers.toBigInt(form.collateralAmount),
           ethers.toBigInt(form.rate),

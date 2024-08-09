@@ -18,7 +18,9 @@ const PopupContainer = styled.div`
   background-color: #1a1b1e;
   border-radius: 16px;
   padding: 2rem;
-  width: 400px;
+  width: 50%;
+  max-height: 80vh;
+  overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 `;
 
@@ -30,26 +32,6 @@ const Title = styled.h2`
   text-align: center;
 `;
 
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: #3a3b3f;
-  border: 1px solid #4a4b4f;
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-
-  &::placeholder {
-    color: #b3b3b3;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #5a5b5f;
-  }
-`;
-
 const TokenList = styled.ul`
   list-style-type: none;
   padding: 0;
@@ -57,17 +39,24 @@ const TokenList = styled.ul`
   text-align: left;
 `;
 
-const TokenItem = styled.li`
+const TokenItem = styled.li<{ isSelected: boolean }>`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0.75rem;
   cursor: pointer;
   transition: background-color 0.3s;
   border-radius: 12px;
+  background-color: ${(props) => (props.isSelected ? "#4a4b4e" : "inherit")};
 
   &:hover {
     background-color: #3a3b3f;
   }
+`;
+
+const TokenIconInfo = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const TokenIcon = styled.img`
@@ -92,15 +81,20 @@ const TokenSymbol = styled.span`
   font-size: 0.875rem;
 `;
 
-const CloseButton = styled.button`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
+const TokenBalance = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+`;
+
+const TokenAmount = styled.span`
   color: #ffffff;
-  font-size: 1.5rem;
-  cursor: pointer;
+  font-size: 0.875rem;
+`;
+
+const TokenUSDValue = styled.span`
+  color: #b3b3b3;
+  font-size: 0.75rem;
 `;
 
 const TokenSelectionPopup = ({
@@ -108,22 +102,18 @@ const TokenSelectionPopup = ({
   onClose,
   onSelect,
   tokens,
-  selectedToken
+  selectedTokenA,
+  selectedTokenB,
+  type
 }: any) => {
   if (!isOpen) return null;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredTokens, setFilteredTokens] = useState(tokens);
+  const [sortedTokens, setSortedTokens] = useState(tokens);
 
   useEffect(() => {
-    setFilteredTokens(
-      tokens.filter(
-        (token: any) =>
-          token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [searchTerm, tokens]);
+    const sorted = [...tokens].sort((a, b) => b.usdBalance - a.usdBalance);
+    setSortedTokens(sorted);
+  }, [tokens]);
 
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -144,25 +134,33 @@ const TokenSelectionPopup = ({
     };
   }, [onClose]);
 
+  const selectedAddress =
+    type === "selectedTokenA" ? selectedTokenA : selectedTokenB;
+
   return (
     <Overlay>
       <PopupContainer ref={popupRef}>
         <Title>Select Token</Title>
-        {/* <CloseButton onClick={onClose}>&times;</CloseButton> */}
-        {/* <SearchInput
-          type="text"
-          placeholder="Search tokens"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        /> */}
         <TokenList>
-          {filteredTokens.map((token: any) => (
-            <TokenItem key={token.address} onClick={() => onSelect(token)}>
-              <TokenIcon src={token.logoURI} alt={token.name} />
-              <TokenInfo>
-                <TokenName>{token.name}</TokenName>
-                <TokenSymbol>{token.symbol}</TokenSymbol>
-              </TokenInfo>
+          {sortedTokens.map((token: any) => (
+            <TokenItem
+              key={token.address}
+              onClick={() => onSelect(token)}
+              isSelected={token.address === selectedAddress}
+            >
+              <TokenIconInfo>
+                <TokenIcon src={token.image} alt={token.name} />
+                <TokenInfo>
+                  <TokenName>{token.name}</TokenName>
+                  <TokenSymbol>{token.symbol}</TokenSymbol>
+                </TokenInfo>
+              </TokenIconInfo>
+              <TokenBalance>
+                <TokenAmount>
+                  {token?.balance.toFixed(4)} {token.symbol}
+                </TokenAmount>
+                <TokenUSDValue>${token?.balanceUSD.toFixed(2)}</TokenUSDValue>
+              </TokenBalance>
             </TokenItem>
           ))}
         </TokenList>

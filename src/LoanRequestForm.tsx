@@ -84,6 +84,9 @@ const TokenSelect = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+  margin-right: 0.5rem;
+  border-radius: 8px;
 `;
 
 const TokenIcon = styled.img`
@@ -160,11 +163,11 @@ const InfoValue = styled.div`
 
 export type FormDetails = {
   borrowAmount: string;
-  borrowToken: string;
   collateralAmount: string;
-  collateralToken: string;
   rate: string;
   duration: number;
+  selectedTokenA: any;
+  selectedTokenB: any;
 };
 
 const LoanRequestForm = () => {
@@ -173,28 +176,43 @@ const LoanRequestForm = () => {
   const [isTokenSelect, setIsTokenSelect] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [selectedType, setSelectedType] = useState("");
   const activeAccount = useActiveAccount();
   const activeChain = useActiveWalletChain();
-  const { publishLoan } = useStateContext();
-
-  const borrowToken = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-  const collateralToken = "0x940181a94A35A4569E4529A3CDfB74e38FD98631";
+  const { publishLoan, portfolioTokens } = useStateContext();
 
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<FormDetails>({
     borrowAmount: "",
-    borrowToken,
     collateralAmount: "",
-    collateralToken,
     rate: "5",
-    duration: 7
+    duration: 7,
+    selectedTokenA: {},
+    selectedTokenB: {}
   });
+
+  useEffect(() => {
+    const setSelectedTokens = () => {
+      const borrowToken = portfolioTokens.find(
+        (token: any) => token.symbol === "USDC"
+      );
+      const collateralToken = portfolioTokens.find(
+        (token: any) => token.symbol === "ETH"
+      );
+
+      setForm({
+        ...form,
+        selectedTokenA: borrowToken,
+        selectedTokenB: collateralToken
+      });
+    };
+    if (portfolioTokens?.length) setSelectedTokens();
+  }, [portfolioTokens]);
 
   const { data: eth_walletBalance } = useWalletBalance({
     chain: activeChain,
     address: activeAccount?.address,
-    client: client,
-    tokenAddress: "0x940181a94A35A4569E4529A3CDfB74e38FD98631"
+    client: client
   });
 
   const { data: usdc_walletBalance } = useWalletBalance({
@@ -292,21 +310,17 @@ const LoanRequestForm = () => {
   const isError =
     Number(form.collateralAmount) > Number(eth_walletBalance?.displayValue);
 
-  // Mock token list (replace with actual token data)
-  const tokens = [
-    {
-      address: "0x...",
-      name: "Ethereum",
-      symbol: "ETH",
-      logoURI: "/ethereum.png"
-    },
-    { address: "0x...", name: "USD Coin", symbol: "USDC", logoURI: "/usdc.png" }
-    // Add more tokens as needed
-  ];
+  const handleTokenSelectPopup = (type: string) => {
+    setIsTokenSelect(true);
+    setSelectedType(type);
+  };
 
   const handleTokenSelect = (token: any) => {
-    // setForm({ ...form, [`${tokenType}Token`]: token });
-    // setIsTokenPopupOpen(false);
+    setForm({
+      ...form,
+      [selectedType]: token
+    });
+    setIsTokenSelect(false);
   };
 
   return (
@@ -322,15 +336,24 @@ const LoanRequestForm = () => {
               value={form.borrowAmount}
               onChange={handleFormFieldsChange}
             />
-            <TokenSelect onClick={() => setIsTokenSelect(true)}>
-              <TokenIcon src="/usdc.png" alt="USDC" />
-              USDC
+            <TokenSelect
+              onClick={() => handleTokenSelectPopup("selectedTokenA")}
+            >
+              <TokenIcon src={form.selectedTokenA.image} alt="USDC" />
+              {form.selectedTokenA?.symbol}
             </TokenSelect>
           </InputWrapper>
           <Balance>
             Balance:{" "}
-            {usdc_walletBalance
-              ? `${usdc_walletBalance.displayValue} USDC`
+            {form.selectedTokenA.name
+              ? `${form.selectedTokenA.balance.toFixed(3)}   ${
+                  form.selectedTokenA?.symbol
+                } 
+                ${
+                  form.selectedTokenA.balanceUSD
+                    ? `(~$${form.selectedTokenA.balanceUSD.toFixed(2)})`
+                    : ""
+                }`
               : "N/A"}
           </Balance>
         </InputGroup>
@@ -345,9 +368,11 @@ const LoanRequestForm = () => {
               value={form.collateralAmount}
               onChange={handleFormFieldsChange}
             />
-            <TokenSelect onClick={() => setIsTokenSelect(true)}>
-              <TokenIcon src="/ethereum.png" alt="ETH" />
-              ETH
+            <TokenSelect
+              onClick={() => handleTokenSelectPopup("selectedTokenB")}
+            >
+              <TokenIcon src={form.selectedTokenB.image} alt="ETH" />
+              {form.selectedTokenB?.symbol}
             </TokenSelect>
           </InputWrapper>
           {isError && (
@@ -357,10 +382,13 @@ const LoanRequestForm = () => {
           )}
           <Balance>
             Balance:{" "}
-            {eth_walletBalance
-              ? `${Number(eth_walletBalance.displayValue).toFixed(6)} ETH ${
-                  collateralAmountInUSD
-                    ? `(~$${collateralAmountInUSD.toFixed(2)})`
+            {form.selectedTokenB.name
+              ? `${form.selectedTokenB.balance.toFixed(3)}   ${
+                  form.selectedTokenB?.symbol
+                } 
+                ${
+                  form.selectedTokenB.balanceUSD
+                    ? `(~$${form.selectedTokenB.balanceUSD.toFixed(2)})`
                     : ""
                 }`
               : "N/A"}
@@ -444,8 +472,10 @@ const LoanRequestForm = () => {
         isOpen={isTokenSelect}
         onClose={() => setIsTokenSelect(false)}
         onSelect={handleTokenSelect}
-        tokens={tokens}
-        selectedToken={"0x940181a94A35A4569E4529A3CDfB74e38FD98631"}
+        tokens={portfolioTokens}
+        selectedTokenA={form.selectedTokenA.address}
+        selectedTokenB={form.selectedTokenB.address}
+        type={selectedType}
       />
     </Container>
   );
