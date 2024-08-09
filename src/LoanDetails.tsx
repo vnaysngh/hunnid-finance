@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { Loan, useStateContext } from "./context";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import CopyToClipboard from "react-copy-to-clipboard";
+import { FaCopy } from "react-icons/fa"; // Import an icon library of your choice
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -23,10 +25,15 @@ const Header = styled.div`
   margin-bottom: 1.5rem;
 `;
 
-const Title = styled.h1`
+const TitleContainer = styled.h1`
+  display: flex;
+  align-items: center;
   font-size: 2.5rem;
   font-weight: 700;
   color: #ffffff;
+`;
+
+const Title = styled.div`
   cursor: pointer;
 
   &:hover {
@@ -96,6 +103,21 @@ const ActionButton = styled.button`
   }
 `;
 
+const CopyButton = styled.button`
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #4a90e2; /* Change color on hover */
+  }
+`;
+
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
   const { parsedLoans, loans, approveAndPayLoan, address } = useStateContext();
@@ -153,12 +175,18 @@ const LoanDetailsPage = () => {
   return (
     <Container>
       <Header>
-        <Title onClick={openExplorer}>
-          Created by:{" "}
-          {`${loanDetails?.owner.slice(0, 4)}...${loanDetails?.owner.slice(
-            -4
-          )}`}
-        </Title>
+        <TitleContainer>
+          <Title onClick={openExplorer}>
+            Created by:{" "}
+            {`${loanDetails?.owner.slice(0, 4)}...${loanDetails?.owner.slice(
+              -4
+            )}`}
+          </Title>
+          <CopyToClipboard text={loanDetails?.owner}>
+            <FaCopy style={{ marginLeft: "0.5rem" }} />
+          </CopyToClipboard>
+        </TitleContainer>
+
         <StatusBadge status={loanDetails?.status}>
           {loanDetails?.status}
         </StatusBadge>
@@ -203,7 +231,7 @@ const LoanDetailsPage = () => {
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
       </DetailsContainer>
-      {loanDetails.owner !== address && (
+      {loanDetails?.owner !== address && (
         <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
       )}
     </Container>

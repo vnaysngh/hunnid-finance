@@ -188,9 +188,6 @@ const UserProfilePage = () => {
 
   return (
     <Container>
-      <Header>
-        <Title onClick={openExplorer}>User Profile</Title>
-      </Header>
       <ProfileInfo>
         <div>
           <UserName>{userProfile.name}</UserName>
