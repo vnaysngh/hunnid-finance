@@ -136,7 +136,7 @@ const StartButton = styled.button`
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #4a4b4e;
+    background-color: #454f6f;
   }
 
   &:disabled {

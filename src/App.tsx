@@ -4,6 +4,7 @@ import Wallet from "./Wallet";
 import { lazy, Suspense, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./LoanDetails";
+import OnboardingPopup from "./Onboarding";
 // import PortfolioDashboard from "./Portfolio";
 
 const CreateLoan = lazy(() => import("./LoanRequestForm"));
@@ -56,6 +57,7 @@ const MainContent = styled.main`
   padding: 20px;
   display: flex;
   flex-direction: column;
+  position: relative;
 `;
 
 const Header = styled.header`
@@ -128,6 +130,8 @@ function App() {
           </NavItemsContainer>
         </Sidebar>
         <MainContent>
+          <OnboardingPopup />
+
           <Header>
             <PageTitle>{pageTitle}</PageTitle>
             <UserInfo>
