@@ -11,6 +11,7 @@ import { useStateContext, web3 } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
 import ABI from "./abi.json";
+import TokenSelectionPopup from "./TokenSelectPopup";
 
 const Container = styled.div`
   font-family: Poppins;
@@ -82,6 +83,7 @@ const TokenSelect = styled.div`
   font-weight: 600;
   display: flex;
   align-items: center;
+  cursor: pointer;
 `;
 
 const TokenIcon = styled.img`
@@ -168,6 +170,7 @@ export type FormDetails = {
 const LoanRequestForm = () => {
   const [price, setPrice] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTokenSelect, setIsTokenSelect] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const activeAccount = useActiveAccount();
@@ -289,6 +292,23 @@ const LoanRequestForm = () => {
   const isError =
     Number(form.collateralAmount) > Number(eth_walletBalance?.displayValue);
 
+  // Mock token list (replace with actual token data)
+  const tokens = [
+    {
+      address: "0x...",
+      name: "Ethereum",
+      symbol: "ETH",
+      logoURI: "/ethereum.png"
+    },
+    { address: "0x...", name: "USD Coin", symbol: "USDC", logoURI: "/usdc.png" }
+    // Add more tokens as needed
+  ];
+
+  const handleTokenSelect = (token: any) => {
+    // setForm({ ...form, [`${tokenType}Token`]: token });
+    // setIsTokenPopupOpen(false);
+  };
+
   return (
     <Container>
       <FormSection>
@@ -302,7 +322,7 @@ const LoanRequestForm = () => {
               value={form.borrowAmount}
               onChange={handleFormFieldsChange}
             />
-            <TokenSelect>
+            <TokenSelect onClick={() => setIsTokenSelect(true)}>
               <TokenIcon src="/usdc.png" alt="USDC" />
               USDC
             </TokenSelect>
@@ -325,7 +345,7 @@ const LoanRequestForm = () => {
               value={form.collateralAmount}
               onChange={handleFormFieldsChange}
             />
-            <TokenSelect>
+            <TokenSelect onClick={() => setIsTokenSelect(true)}>
               <TokenIcon src="/ethereum.png" alt="ETH" />
               ETH
             </TokenSelect>
@@ -418,6 +438,14 @@ const LoanRequestForm = () => {
         onClose={handleCloseModal}
         txHash={txHash}
         error={error}
+      />
+
+      <TokenSelectionPopup
+        isOpen={isTokenSelect}
+        onClose={() => setIsTokenSelect(false)}
+        onSelect={handleTokenSelect}
+        tokens={tokens}
+        selectedToken={"0x940181a94A35A4569E4529A3CDfB74e38FD98631"}
       />
     </Container>
   );
