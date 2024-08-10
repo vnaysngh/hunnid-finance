@@ -121,14 +121,14 @@ function App() {
   const navItems = [
     { icon: "🔍", text: "Browse", key: "browse", path: "/" },
     { icon: "💰", text: "Borrow", key: "create", path: "/create" },
-    { icon: "📂", text: "Portfolio", key: "portfolio", path: "/portfolio" },
-    { icon: "👤", text: "Profile", key: "profile", path: "/profile" }
+    { icon: "📂", text: "Portfolio", key: "portfolio", path: "/portfolio" }
+    // { icon: "👤", text: "Profile", key: "profile", path: "/profile" }
   ];
 
   const routeMappings: Record<string, { title: string; navItem: string }> = {
     browse: { title: "Browse Active Loans", navItem: "browse" },
     create: { title: "Create Borrow Request", navItem: "create" },
-    profile: { title: "User Profile", navItem: "profile" },
+    // profile: { title: "User Profile", navItem: "profile" },
     portfolio: { title: "Portfolio Dashboard", navItem: "portfolio" }
   };
 
@@ -189,7 +189,7 @@ function App() {
             <Route path="/browse" element={<BrowseLoan />} />
             <Route path="/create" element={<CreateLoan />} />
             <Route path="/loan/:loanId" element={<LoanDetailsPage />} />
-            <Route path="/profile" element={<Profile />} />
+            {/* <Route path="/profile" element={<Profile />} /> */}
             <Route path="/portfolio" element={<Portfolio />} />
           </Routes>
         </Suspense>
