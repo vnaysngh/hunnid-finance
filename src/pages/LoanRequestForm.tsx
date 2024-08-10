@@ -243,11 +243,19 @@ const LoanRequestForm = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsModalOpen(true);
+
+    console.log(Math.ceil(Number(form.collateralAmount)));
     // setIsLoading(true);
     const response = await publishLoan({
       ...form,
-      borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
-      collateralAmount: ethers.parseUnits(form.collateralAmount, 18)
+      borrowAmount: ethers.parseUnits(
+        form.borrowAmount,
+        form.selectedTokenA.decimals
+      ),
+      collateralAmount: ethers.parseUnits(
+        form.collateralAmount,
+        form.selectedTokenB.decimals
+      )
     });
 
     if (response?.transactionHash) setTxHash(response?.transactionHash);
@@ -260,7 +268,12 @@ const LoanRequestForm = () => {
     const collateralAmountInUSDC = Number(form.borrowAmount) / 0.6;
     const collateralAmountInETH =
       collateralAmountInUSDC / form.selectedTokenB.price;
-    setForm({ ...form, collateralAmount: collateralAmountInETH.toString() });
+    setForm({
+      ...form,
+      collateralAmount: collateralAmountInETH.toFixed(
+        form.selectedTokenB.decimals
+      )
+    });
   }, [
     form.borrowAmount,
     form.collateralAmount,

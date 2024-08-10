@@ -44,11 +44,8 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   const contract = getContract({
     client,
     chain: defineChain(8453),
-    address: "0x1bd7A361a8a79f26dAAeDa7532126786d56E57EA"
+    address: "0xACcB7E596586468C363E8CE48d2f9F578a505030"
   });
-
-  // connect to your contract
-  //  const token_contract = ethers.Contract
 
   const activeAccount = useActiveAccount();
 
@@ -99,33 +96,41 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       .send({ from: userAccount })
       .then((receipt) => receipt);
 
-    if (approvalTxResponse.transactionHash) {
-      const startDate = Math.round(new Date().getTime() / 1000);
-      const endDate = startDate + form.duration * 86400;
-
-      const transaction = prepareContractCall({
-        contract,
-        method:
-          "function createLoan(address _owner, address _borrowToken, address _collateralToken, uint256 _borrowAmount, uint256 _collateralAmount, uint256 _rate, uint256 _duration, uint256 _startDate, uint256 _endDate) returns (uint256)",
-        params: [
-          activeAccount?.address,
-          form.selectedTokenA.address,
-          form.selectedTokenB.address,
-          ethers.toBigInt(form.borrowAmount),
-          ethers.toBigInt(form.collateralAmount),
-          ethers.toBigInt(form.rate),
-          ethers.toBigInt(form.duration),
-          ethers.toBigInt(startDate),
-          ethers.toBigInt(endDate)
-        ]
-      });
-      return sendTransaction(transaction)
-        .then((res) => res)
-        .catch((e) => {
-          console.log(e);
-          return e;
-        });
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
     }
+
+    const startDate = Math.round(new Date().getTime() / 1000);
+    const endDate = startDate + form.duration * 86400;
+
+    const transaction = prepareContractCall({
+      contract,
+      method:
+        "function createLoan(address _owner, address _borrowToken, address _collateralToken, uint256 _borrowAmount, uint256 _collateralAmount, uint256 _rate, uint256 _duration, uint256 _startDate, uint256 _endDate) returns (uint256)",
+      params: [
+        activeAccount?.address,
+        form.selectedTokenA.address,
+        form.selectedTokenB.address,
+        ethers.toBigInt(form.borrowAmount),
+        ethers.toBigInt(form.collateralAmount),
+        ethers.toBigInt(form.rate),
+        ethers.toBigInt(form.duration),
+        ethers.toBigInt(startDate),
+        ethers.toBigInt(endDate)
+      ]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const approveAndPayLoan = async (loan: Loan) => {
@@ -135,7 +140,6 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     }
 
     const tokenContract = new web3.eth.Contract(ABI, loan.borrowToken);
-
     const accounts = await web3.eth.getAccounts();
     const userAccount = accounts[0];
 
@@ -162,6 +166,22 @@ export const StateContextProvider = ({ children }: { children: any }) => {
           return e;
         });
     }
+  };
+
+  const deleteLoan = async (_id: string) => {
+    const accounts = await web3.eth.getAccounts();
+    const userAccount = accounts[0];
+    const transaction = prepareContractCall({
+      contract,
+      method: "function deleteLoan(uint256 _id, address _owner)",
+      params: [ethers.toBigInt(_id), userAccount]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const { data: loans } = useReadContract({
@@ -197,6 +217,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         parsedLoans,
         publishLoan,
         approveAndPayLoan,
+        deleteLoan,
         portfolioTokens,
         totalValue
       }}

@@ -6,6 +6,7 @@ import axios from "axios";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { FaCopy } from "react-icons/fa"; // Import an icon library of your choice
 import Loader from "../components/Loader";
+import TransactionConfirmationPopup from "../components/TransactionPopup";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -104,10 +105,22 @@ const ActionButton = styled.button`
   }
 `;
 
+const ActionButtonDelete = styled(ActionButton)`
+  background-color: #933636;
+
+  &:hover {
+    background-color: #5d2c2c;
+  }
+`;
+
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
-  const { parsedLoans, loans, approveAndPayLoan, address } = useStateContext();
+  const { parsedLoans, loans, approveAndPayLoan, address, deleteLoan } =
+    useStateContext();
   const [price, setPrice] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const getUSDPrice = async () => {
@@ -156,6 +169,19 @@ const LoanDetailsPage = () => {
   const handlePayLoan = async () => {
     const rawLoan: Loan = loans.filter((loan: Loan) => loan.id == loanId)?.[0];
     approveAndPayLoan(rawLoan);
+  };
+
+  const handleDeleteLoan = async () => {
+    setIsModalOpen(true);
+    const response = await deleteLoan(loanId);
+    if (response?.transactionHash) setTxHash(response?.transactionHash);
+    else setError(response.message);
+  };
+
+  const handleCloseModal = () => {
+    setError(null);
+    setTxHash(null);
+    setIsModalOpen(false);
   };
 
   return (
@@ -222,9 +248,24 @@ const LoanDetailsPage = () => {
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
           </DetailsContainer>
-          {loanDetails?.owner !== address && (
-            <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
-          )}
+          {loanDetails?.owner !== address &&
+            loanDetails.status === "Pending" && (
+              <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+            )}
+
+          {loanDetails?.owner === address &&
+            loanDetails.status !== "Active" && (
+              <ActionButtonDelete onClick={handleDeleteLoan}>
+                Delete
+              </ActionButtonDelete>
+            )}
+
+          <TransactionConfirmationPopup
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            txHash={txHash}
+            error={error}
+          />
         </Container>
       )}
     </>
