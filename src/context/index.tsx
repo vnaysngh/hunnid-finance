@@ -143,7 +143,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   };
 
   const approveAndPayLoan = async (loan: Loan) => {
-    if (!activeAccount?.address) {
+    if (!address) {
       console.log("invalid address");
       return;
     }
@@ -201,21 +201,43 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       });
   };
 
-  // const repayLoan = async (_id: string) => {
-  //   const accounts = await web3.eth.getAccounts();
-  //   const userAccount = accounts[0];
-  //   const transaction = prepareContractCall({
-  //     contract,
-  //     method: "function repayLoan(uint256 _id) payable",
-  //     params: [_id]
-  //   });
-  //   return sendTransaction(transaction)
-  //     .then((res) => res)
-  //     .catch((e) => {
-  //       console.log(e);
-  //       return e;
-  //     });
-  // };
+  const repayLoan = async (loan: any) => {
+    if (!address) {
+      console.log("invalid address");
+      return;
+    }
+
+    const tokenContract = new web3.eth.Contract(ABI, loan.borrowToken);
+    const accounts = await web3.eth.getAccounts();
+    const userAccount = accounts[0];
+
+    const approvalTxResponse = await tokenContract.methods
+      .approve(contract.address, ethers.toBigInt(loan.borrowAmount))
+      .send({ from: userAccount })
+      .then((receipt) => receipt);
+
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
+    }
+
+    const transaction = prepareContractCall({
+      contract,
+      method: "function repayLoan(uint256 _id) payable",
+      params: [loan.id]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
+  };
 
   const { data: loans } = useReadContract({
     contract,
@@ -252,6 +274,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         publishLoan,
         approveAndPayLoan,
         deleteLoan,
+        repayLoan,
         portfolioTokens,
         totalValue
       }}

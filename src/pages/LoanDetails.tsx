@@ -115,8 +115,15 @@ const ActionButton = styled.button<{ status: string }>`
 const LoanDetailsPage = () => {
   const navigate = useNavigate();
   const { loanId } = useParams();
-  const { chain, parsedLoans, loans, approveAndPayLoan, address, deleteLoan } =
-    useStateContext();
+  const {
+    chain,
+    parsedLoans,
+    loans,
+    approveAndPayLoan,
+    address,
+    deleteLoan,
+    repayLoan
+  } = useStateContext();
   const [price, setPrice] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -204,7 +211,8 @@ const LoanDetailsPage = () => {
 
   const handleRepayLoan = async () => {
     setIsModalOpen(true);
-    const response = await deleteLoan(loanId);
+    const rawLoan: Loan = loans.filter((loan: Loan) => loan.id == loanId)?.[0];
+    const response = await repayLoan(rawLoan);
     if (response?.transactionHash) setTxHash(response?.transactionHash);
     else setError(response.message);
   };
