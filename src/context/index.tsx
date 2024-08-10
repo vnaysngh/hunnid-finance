@@ -148,24 +148,32 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       .send({ from: userAccount })
       .then((receipt) => receipt);
 
-    if (approvalTxResponse.transactionHash) {
-      const transaction = prepareContractCall({
-        contract,
-        method:
-          "function approveAndPayLoan(address _owner, uint256 _id, uint256 _amount)",
-        params: [
-          loan.owner,
-          ethers.toBigInt("2"),
-          ethers.toBigInt(loan.borrowAmount)
-        ]
-      });
-      return sendTransaction(transaction)
-        .then((res) => res)
-        .catch((e) => {
-          console.log(e);
-          return e;
-        });
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
     }
+
+    const transaction = prepareContractCall({
+      contract,
+      method:
+        "function approveAndPayLoan(uint256 _id, address _owner, uint256 _amount)",
+      params: [
+        ethers.toBigInt("0"),
+        loan.owner,
+        ethers.toBigInt(loan.borrowAmount)
+      ]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const deleteLoan = async (_id: string) => {
@@ -183,6 +191,22 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         return e;
       });
   };
+
+  // const repayLoan = async (_id: string) => {
+  //   const accounts = await web3.eth.getAccounts();
+  //   const userAccount = accounts[0];
+  //   const transaction = prepareContractCall({
+  //     contract,
+  //     method: "function repayLoan(uint256 _id) payable",
+  //     params: [_id]
+  //   });
+  //   return sendTransaction(transaction)
+  //     .then((res) => res)
+  //     .catch((e) => {
+  //       console.log(e);
+  //       return e;
+  //     });
+  // };
 
   const { data: loans } = useReadContract({
     contract,

@@ -92,7 +92,7 @@ const TokenIcon = styled.img`
   margin-right: 0.75rem;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button<{ status: string }>`
   font-family: "Poppins", sans-serif;
   background-color: #4caf50;
   color: #ffffff;
@@ -104,18 +104,12 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: background-color 0.3s;
   margin-top: 2.5rem;
-
-  &:hover {
-    background-color: #43a047;
-  }
-`;
-
-const ActionButtonDelete = styled(ActionButton)`
-  background-color: #933636;
-
-  &:hover {
-    background-color: #5d2c2c;
-  }
+  background-color: ${(props) =>
+    props.status === "Pending"
+      ? "#933636"
+      : props.status === "Active"
+      ? "#ff9800"
+      : "#4caf50"};
 `;
 
 const LoanDetailsPage = () => {
@@ -193,8 +187,11 @@ const LoanDetailsPage = () => {
   };
 
   const handlePayLoan = async () => {
+    setIsModalOpen(true);
     const rawLoan: Loan = loans.filter((loan: Loan) => loan.id == loanId)?.[0];
-    approveAndPayLoan(rawLoan);
+    const response = await approveAndPayLoan(rawLoan);
+    if (response?.transactionHash) setTxHash(response?.transactionHash);
+    else setError(response.message);
   };
 
   const handleDeleteLoan = async () => {
@@ -277,14 +274,29 @@ const LoanDetailsPage = () => {
           </DetailsContainer>
           {loanDetails?.owner !== address &&
             loanDetails.status === "Pending" && (
-              <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+              <ActionButton status={loanDetails.status} onClick={handlePayLoan}>
+                Transfer
+              </ActionButton>
             )}
 
           {loanDetails?.owner === address &&
             loanDetails.status !== "Active" && (
-              <ActionButtonDelete onClick={handleDeleteLoan}>
+              <ActionButton
+                status={loanDetails.status}
+                onClick={handleDeleteLoan}
+              >
                 Delete
-              </ActionButtonDelete>
+              </ActionButton>
+            )}
+
+          {loanDetails?.owner === address &&
+            loanDetails.status === "Active" && (
+              <ActionButton
+                status={loanDetails.status}
+                onClick={handleDeleteLoan}
+              >
+                Repay
+              </ActionButton>
             )}
 
           <TransactionConfirmationPopup
