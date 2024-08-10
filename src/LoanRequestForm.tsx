@@ -4,6 +4,8 @@ import { useStateContext } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
 import TokenSelectionPopup from "./TokenSelectPopup";
+import { TokenList } from "./Tokenlist";
+import Loader from "./Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -185,6 +187,7 @@ const LoanRequestForm = () => {
   const [error, setError] = useState<Error | null>(null);
   const [selectedType, setSelectedType] = useState<string>("");
   const { publishLoan, portfolioTokens } = useStateContext();
+  const [tokenList, setTokenList] = useState<object[]>([]);
 
   // const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<FormDetails>({
@@ -197,11 +200,24 @@ const LoanRequestForm = () => {
   });
 
   useEffect(() => {
+    const setFilteredTokens = () => {
+      const filteredTokenList = portfolioTokens.filter((token: any) => {
+        return TokenList.some((portfolioToken: any) => {
+          return portfolioToken.name === token.name;
+        });
+      });
+
+      setTokenList(filteredTokenList);
+    };
+    if (portfolioTokens?.length) setFilteredTokens();
+  }, [portfolioTokens]);
+
+  useEffect(() => {
     const setSelectedTokens = () => {
-      const borrowToken = portfolioTokens.find(
+      const borrowToken = tokenList.find(
         (token: any) => token.symbol === "USDC"
       );
-      const collateralToken = portfolioTokens.find(
+      const collateralToken = tokenList.find(
         (token: any) => token.symbol === "ETH"
       );
 
@@ -211,8 +227,8 @@ const LoanRequestForm = () => {
         selectedTokenB: collateralToken
       });
     };
-    if (portfolioTokens?.length) setSelectedTokens();
-  }, [portfolioTokens]);
+    if (tokenList?.length) setSelectedTokens();
+  }, [tokenList]);
 
   const handleCloseModal = () => {
     setError(null);
@@ -307,180 +323,187 @@ const LoanRequestForm = () => {
   };
 
   return (
-    <Container>
-      <Title>Request a Loan</Title>
-      <FormSection>
-        <InputGroup>
-          <Label>I want to borrow</Label>
-          <InputWrapper>
-            <Input
-              type="number"
-              name="borrowAmount"
-              placeholder="100"
-              value={form.borrowAmount}
-              onChange={handleFormFieldsChange}
-            />
-            <TokenSelect
-              onClick={() => handleTokenSelectPopup("selectedTokenA")}
-            >
-              <TokenIcon src={form.selectedTokenA.image} alt="USDC" />
-              {form.selectedTokenA?.symbol}
-            </TokenSelect>
-          </InputWrapper>
-          <Balance>
-            Balance:{" "}
-            {form.selectedTokenA.name
-              ? `${form.selectedTokenA.balance.toFixed(3)} ${
-                  form.selectedTokenA?.symbol
-                } 
+    <>
+      {!tokenList.length ? (
+        <Loader />
+      ) : (
+        <Container>
+          <Title>Request a Loan</Title>
+          <FormSection>
+            <InputGroup>
+              <Label>I want to borrow</Label>
+              <InputWrapper>
+                <Input
+                  type="number"
+                  name="borrowAmount"
+                  placeholder="100"
+                  value={form.borrowAmount}
+                  onChange={handleFormFieldsChange}
+                />
+                <TokenSelect
+                  onClick={() => handleTokenSelectPopup("selectedTokenA")}
+                >
+                  <TokenIcon src={form.selectedTokenA.image} alt="USDC" />
+                  {form.selectedTokenA?.symbol}
+                </TokenSelect>
+              </InputWrapper>
+              <Balance>
+                Balance:{" "}
+                {form.selectedTokenA.name
+                  ? `${form.selectedTokenA.balance.toFixed(3)} ${
+                      form.selectedTokenA?.symbol
+                    } 
               ${
                 form.selectedTokenA.balanceUSD
                   ? `(~$${form.selectedTokenA.balanceUSD.toFixed(2)})`
                   : ""
               }`
-              : "N/A"}
-          </Balance>
-        </InputGroup>
+                  : "N/A"}
+              </Balance>
+            </InputGroup>
 
-        <InputGroup>
-          <Label>Collateral Amount</Label>
-          <InputWrapper>
-            <Input
-              type="number"
-              name="collateralAmount"
-              placeholder="0.25"
-              value={form.collateralAmount}
-              onChange={handleFormFieldsChange}
-            />
-            <TokenSelect
-              onClick={() => handleTokenSelectPopup("selectedTokenB")}
-            >
-              <TokenIcon src={form.selectedTokenB.image} alt="ETH" />
-              {form.selectedTokenB?.symbol}
-            </TokenSelect>
-          </InputWrapper>
-          {isError && (
-            <Label style={{ color: "red", marginTop: 5 }}>
-              Insufficient Balance
-            </Label>
-          )}
-          <Balance>
-            Balance:{" "}
-            {form.selectedTokenB.name
-              ? `${form.selectedTokenB.balance.toFixed(3)} ${
-                  form.selectedTokenB?.symbol
-                } 
+            <InputGroup>
+              <Label>Collateral Amount</Label>
+              <InputWrapper>
+                <Input
+                  type="number"
+                  name="collateralAmount"
+                  placeholder="0.25"
+                  value={form.collateralAmount}
+                  onChange={handleFormFieldsChange}
+                />
+                <TokenSelect
+                  onClick={() => handleTokenSelectPopup("selectedTokenB")}
+                >
+                  <TokenIcon src={form.selectedTokenB.image} alt="ETH" />
+                  {form.selectedTokenB?.symbol}
+                </TokenSelect>
+              </InputWrapper>
+              {isError && (
+                <Label style={{ color: "red", marginTop: 5 }}>
+                  Insufficient Balance
+                </Label>
+              )}
+              <Balance>
+                Balance:{" "}
+                {form.selectedTokenB.name
+                  ? `${form.selectedTokenB.balance.toFixed(3)} ${
+                      form.selectedTokenB?.symbol
+                    } 
               ${
                 form.selectedTokenB.balanceUSD
                   ? `(~$${form.selectedTokenB.balanceUSD.toFixed(2)})`
                   : ""
               }`
-              : "N/A"}
-          </Balance>
-        </InputGroup>
-      </FormSection>
+                  : "N/A"}
+              </Balance>
+            </InputGroup>
+          </FormSection>
 
-      <InputGroup>
-        <Label>Interest Rate (%)</Label>
-        <InputWrapper>
-          <Input
-            type="number"
-            name="rate"
-            defaultValue="5"
-            step="0.1"
-            min="0"
-            max="100"
-            value={form.rate}
-            onChange={handleFormFieldsChange}
-          />
-        </InputWrapper>
-      </InputGroup>
+          <InputGroup>
+            <Label>Interest Rate (%)</Label>
+            <InputWrapper>
+              <Input
+                type="number"
+                name="rate"
+                defaultValue="5"
+                step="0.1"
+                min="0"
+                max="100"
+                value={form.rate}
+                onChange={handleFormFieldsChange}
+              />
+            </InputWrapper>
+          </InputGroup>
 
-      <InputGroup>
-        <Label>Loan Term</Label>
-        <div
-          style={{
-            color: "#b3b3b3",
-            fontSize: "0.875rem",
-            marginBottom: "0.5rem"
-          }}
-        >
-          No interest penalty for early repayment
-        </div>
-        <TermButtons>
-          {[7, 14, 30].map((t) => (
-            <TermButton
-              key={t}
-              active={form.duration === t}
-              onClick={() => setForm({ ...form, duration: t })}
+          <InputGroup>
+            <Label>Loan Term</Label>
+            <div
+              style={{
+                color: "#b3b3b3",
+                fontSize: "0.875rem",
+                marginBottom: "0.5rem"
+              }}
             >
-              {t} Days
-            </TermButton>
-          ))}
-        </TermButtons>
-      </InputGroup>
+              No interest penalty for early repayment
+            </div>
+            <TermButtons>
+              {[7, 14, 30].map((t) => (
+                <TermButton
+                  key={t}
+                  active={form.duration === t}
+                  onClick={() => setForm({ ...form, duration: t })}
+                >
+                  {t} Days
+                </TermButton>
+              ))}
+            </TermButtons>
+          </InputGroup>
 
-      <AdditionalInfoContainer>
-        <InfoItem>
-          <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
-          <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>
-            Liquidation Price ({form.selectedTokenB.symbol}/
-            {form.selectedTokenA.symbol})
-          </InfoLabel>
-          <InfoValue style={{ color: "red" }}>
-            {liqiuidationPrice.toFixed(4)}
-          </InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>Total Interest Amount</InfoLabel>
-          <InfoValue>
-            {totalInterestAmount} {form.selectedTokenA.symbol}
-          </InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>Total Repayment Amount</InfoLabel>
-          <InfoValue>
-            {totalRepaymentAmount} {form.selectedTokenA.symbol}
-          </InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>
-            Price ({form.selectedTokenB.symbol}/{form.selectedTokenA.symbol})
-          </InfoLabel>
-          <InfoValue>
-            {form.selectedTokenB.price
-              ? (form.selectedTokenB.price / form.selectedTokenA.price).toFixed(
-                  6
+          <AdditionalInfoContainer>
+            <InfoItem>
+              <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
+              <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
+            </InfoItem>
+            <InfoItem>
+              <InfoLabel>
+                Liquidation Price ({form.selectedTokenB.symbol}/
+                {form.selectedTokenA.symbol})
+              </InfoLabel>
+              <InfoValue style={{ color: "red" }}>
+                {liqiuidationPrice.toFixed(4)}
+              </InfoValue>
+            </InfoItem>
+            <InfoItem>
+              <InfoLabel>Total Interest Amount</InfoLabel>
+              <InfoValue>
+                {totalInterestAmount} {form.selectedTokenA.symbol}
+              </InfoValue>
+            </InfoItem>
+            <InfoItem>
+              <InfoLabel>Total Repayment Amount</InfoLabel>
+              <InfoValue>
+                {totalRepaymentAmount} {form.selectedTokenA.symbol}
+              </InfoValue>
+            </InfoItem>
+            <InfoItem>
+              <InfoLabel>
+                Price ({form.selectedTokenB.symbol}/{form.selectedTokenA.symbol}
                 )
-              : "N/A"}
-          </InfoValue>
-        </InfoItem>
-      </AdditionalInfoContainer>
+              </InfoLabel>
+              <InfoValue>
+                {form.selectedTokenB.price
+                  ? (
+                      form.selectedTokenB.price / form.selectedTokenA.price
+                    ).toFixed(6)
+                  : "N/A"}
+              </InfoValue>
+            </InfoItem>
+          </AdditionalInfoContainer>
 
-      <StartButton onClick={handleSubmit} disabled={isError}>
-        Start Borrowing Now
-      </StartButton>
+          <StartButton onClick={handleSubmit} disabled={isError}>
+            Start Borrowing Now
+          </StartButton>
 
-      <TransactionConfirmationPopup
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        txHash={txHash}
-        error={error}
-      />
+          <TransactionConfirmationPopup
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            txHash={txHash}
+            error={error}
+          />
 
-      <TokenSelectionPopup
-        isOpen={isTokenSelect}
-        onClose={() => setIsTokenSelect(false)}
-        onSelect={handleTokenSelect}
-        tokens={portfolioTokens}
-        selectedTokenA={form.selectedTokenA.address}
-        selectedTokenB={form.selectedTokenB.address}
-        type={selectedType}
-      />
-    </Container>
+          <TokenSelectionPopup
+            isOpen={isTokenSelect}
+            onClose={() => setIsTokenSelect(false)}
+            onSelect={handleTokenSelect}
+            tokens={tokenList}
+            selectedTokenA={form.selectedTokenA.address}
+            selectedTokenB={form.selectedTokenB.address}
+            type={selectedType}
+          />
+        </Container>
+      )}
+    </>
   );
 };
 

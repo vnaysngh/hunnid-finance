@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context"; // Assuming you have a similar context setup
 import { useNavigate } from "react-router-dom";
+import Loader from "./Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -162,57 +163,63 @@ const UserProfilePage = () => {
   };
 
   return (
-    <Container>
-      <ProfileInfo>
-        <div>
-          <UserName>{userProfile.name}</UserName>
-          <UserAddress>{userProfile.address}</UserAddress>
-        </div>
-      </ProfileInfo>
-      <StatisticsContainer>
-        <StatBox>
-          <StatLabel>Active Loans</StatLabel>
-          <StatValue>{statistics.activeLoans}</StatValue>
-        </StatBox>
-        <StatBox>
-          <StatLabel>Pending Loans</StatLabel>
-          <StatValue>{statistics.pendingLoans}</StatValue>
-        </StatBox>
-        <StatBox>
-          <StatLabel>Closed Loans</StatLabel>
-          <StatValue>{statistics.closedLoans}</StatValue>
-        </StatBox>
-      </StatisticsContainer>
-      <LoansSection>
-        <h2>Loans</h2>
-        {parsedLoans.map((loan: Loan, index: number) => (
-          <LoanCard key={index}>
-            <LoanDetail>
-              <Label>Borrowed</Label>
-              <Value>
-                <TokenIcon src="/usdc.png" alt="USDC" />
-                {loan.borrowAmount} USDC
-              </Value>
-            </LoanDetail>
-            <LoanDetail>
-              <Label>Collateral</Label>
-              <Value>
-                <TokenIcon src="/ethereum.png" alt="ETH" />
-                {loan.collateralAmount.toFixed(6)} ETH
-              </Value>
-            </LoanDetail>
-            <LoanDetail>
-              <Label>End Date</Label>
-              <Value>{loan.endDate}</Value>
-            </LoanDetail>
-            <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
-            <ActionButton onClick={() => handleLoanClick(loan.id)}>
-              View Details
-            </ActionButton>
-          </LoanCard>
-        ))}
-      </LoansSection>
-    </Container>
+    <>
+      {!parsedLoans.length ? (
+        <Loader />
+      ) : (
+        <Container>
+          <ProfileInfo>
+            <div>
+              <UserName>{userProfile.name}</UserName>
+              <UserAddress>{userProfile.address}</UserAddress>
+            </div>
+          </ProfileInfo>
+          <StatisticsContainer>
+            <StatBox>
+              <StatLabel>Active Loans</StatLabel>
+              <StatValue>{statistics.activeLoans}</StatValue>
+            </StatBox>
+            <StatBox>
+              <StatLabel>Pending Loans</StatLabel>
+              <StatValue>{statistics.pendingLoans}</StatValue>
+            </StatBox>
+            <StatBox>
+              <StatLabel>Closed Loans</StatLabel>
+              <StatValue>{statistics.closedLoans}</StatValue>
+            </StatBox>
+          </StatisticsContainer>
+          <LoansSection>
+            <h2>Loans</h2>
+            {parsedLoans.map((loan: Loan, index: number) => (
+              <LoanCard key={index}>
+                <LoanDetail>
+                  <Label>Borrowed</Label>
+                  <Value>
+                    <TokenIcon src="/usdc.png" alt="USDC" />
+                    {loan.borrowAmount} USDC
+                  </Value>
+                </LoanDetail>
+                <LoanDetail>
+                  <Label>Collateral</Label>
+                  <Value>
+                    <TokenIcon src="/ethereum.png" alt="ETH" />
+                    {loan.collateralAmount.toFixed(6)} ETH
+                  </Value>
+                </LoanDetail>
+                <LoanDetail>
+                  <Label>End Date</Label>
+                  <Value>{loan.endDate}</Value>
+                </LoanDetail>
+                <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
+                <ActionButton onClick={() => handleLoanClick(loan.id)}>
+                  View Details
+                </ActionButton>
+              </LoanCard>
+            ))}
+          </LoansSection>
+        </Container>
+      )}
+    </>
   );
 };
 

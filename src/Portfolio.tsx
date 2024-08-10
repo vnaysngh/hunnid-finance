@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { useStateContext } from "./context";
+import Loader from "./Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -108,41 +109,47 @@ const PortfolioDashboard = () => {
   const { portfolioTokens, totalValue, address } = useStateContext();
 
   return (
-    <Container>
-      <Header>
-        <Title>
-          Base: {address?.slice(0, 6)}...
-          {address?.slice(-4)}
-        </Title>
-        <TotalBalanceCard>
-          <BalanceLabel>Total Balance: </BalanceLabel>
-          <TotalValue>${totalValue.toFixed(2)}</TotalValue>
-        </TotalBalanceCard>
-      </Header>
-      <TokensContainer>
-        {portfolioTokens &&
-          portfolioTokens.map((token: any, index: number) => (
-            <TokenItem key={index}>
-              <TokenInfo>
-                <TokenIcon src={token.image} alt={token.name} />
-                <TokenDetails>
-                  <TokenName>{token.name}</TokenName>
-                  <TokenSymbol>{token.symbol}</TokenSymbol>
-                </TokenDetails>
-              </TokenInfo>
-              <div /> {/* Spacer */}
-              <TokenBalance>
-                <TokenAmount>
-                  {parseFloat(token.balance).toFixed(6)} {token.symbol}
-                </TokenAmount>
-                <TokenValue>
-                  ${parseFloat(token.balanceUSD).toFixed(2)}
-                </TokenValue>
-              </TokenBalance>
-            </TokenItem>
-          ))}
-      </TokensContainer>
-    </Container>
+    <>
+      {!portfolioTokens.length ? (
+        <Loader />
+      ) : (
+        <Container>
+          <Header>
+            <Title>
+              Base: {address?.slice(0, 6)}...
+              {address?.slice(-4)}
+            </Title>
+            <TotalBalanceCard>
+              <BalanceLabel>Total Balance: </BalanceLabel>
+              <TotalValue>${totalValue.toFixed(2)}</TotalValue>
+            </TotalBalanceCard>
+          </Header>
+          <TokensContainer>
+            {portfolioTokens &&
+              portfolioTokens.map((token: any, index: number) => (
+                <TokenItem key={index}>
+                  <TokenInfo>
+                    <TokenIcon src={token.image} alt={token.name} />
+                    <TokenDetails>
+                      <TokenName>{token.name}</TokenName>
+                      <TokenSymbol>{token.symbol}</TokenSymbol>
+                    </TokenDetails>
+                  </TokenInfo>
+                  <div /> {/* Spacer */}
+                  <TokenBalance>
+                    <TokenAmount>
+                      {parseFloat(token.balance).toFixed(6)} {token.symbol}
+                    </TokenAmount>
+                    <TokenValue>
+                      ${parseFloat(token.balanceUSD).toFixed(2)}
+                    </TokenValue>
+                  </TokenBalance>
+                </TokenItem>
+              ))}
+          </TokensContainer>
+        </Container>
+      )}
+    </>
   );
 };
 

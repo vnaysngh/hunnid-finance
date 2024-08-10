@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { FaCopy } from "react-icons/fa"; // Import an icon library of your choice
+import Loader from "./Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -158,68 +159,75 @@ const LoanDetailsPage = () => {
   };
 
   return (
-    <Container>
-      <Header>
-        <TitleContainer>
-          <Title onClick={openExplorer}>
-            Created by:{" "}
-            {`${loanDetails?.owner.slice(0, 4)}...${loanDetails?.owner.slice(
-              -4
-            )}`}
-          </Title>
-          <CopyToClipboard text={loanDetails?.owner}>
-            <FaCopy style={{ marginLeft: "0.5rem" }} />
-          </CopyToClipboard>
-        </TitleContainer>
+    <>
+      {!loanDetails || (loanDetails && !Object.keys(loanDetails).length) ? (
+        <Loader />
+      ) : (
+        <Container>
+          <Header>
+            <TitleContainer>
+              <Title onClick={openExplorer}>
+                Created by:{" "}
+                {`${loanDetails?.owner.slice(
+                  0,
+                  4
+                )}...${loanDetails?.owner.slice(-4)}`}
+              </Title>
+              <CopyToClipboard text={loanDetails?.owner}>
+                <FaCopy style={{ marginLeft: "0.5rem" }} />
+              </CopyToClipboard>
+            </TitleContainer>
 
-        <StatusBadge status={loanDetails?.status}>
-          {loanDetails?.status}
-        </StatusBadge>
-      </Header>
-      <DetailsContainer>
-        <DetailGroup>
-          <Label>Borrowed Amount</Label>
-          <Value>
-            <TokenIcon src="/usdc.png" alt="USDC" />
-            {loanDetails?.borrowAmount} USDC
-          </Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>Collateral Amount</Label>
-          <Value>
-            <TokenIcon src="/ethereum.png" alt="ETH" />
-            {loanDetails?.collateralAmount.toFixed(6)} ETH
-          </Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>Interest Rate</Label>
-          <Value>{loanDetails?.rate}%</Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>Loan Term</Label>
-          <Value>{loanDetails?.duration} days</Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>Start Date</Label>
-          <Value>{loanDetails?.startDate}</Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>End Date</Label>
-          <Value>{loanDetails?.endDate}</Value>
-        </DetailGroup>
-        <DetailGroup>
-          <Label>Current LTV</Label>
-          <Value>{currentLTV?.toFixed(4) ?? "-"}</Value>
-        </DetailGroup>
-        {/*  <DetailGroup>
+            <StatusBadge status={loanDetails?.status}>
+              {loanDetails?.status}
+            </StatusBadge>
+          </Header>
+          <DetailsContainer>
+            <DetailGroup>
+              <Label>Borrowed Amount</Label>
+              <Value>
+                <TokenIcon src="/usdc.png" alt="USDC" />
+                {loanDetails?.borrowAmount} USDC
+              </Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>Collateral Amount</Label>
+              <Value>
+                <TokenIcon src="/ethereum.png" alt="ETH" />
+                {loanDetails?.collateralAmount.toFixed(6)} ETH
+              </Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>Interest Rate</Label>
+              <Value>{loanDetails?.rate}%</Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>Loan Term</Label>
+              <Value>{loanDetails?.duration} days</Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>Start Date</Label>
+              <Value>{loanDetails?.startDate}</Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>End Date</Label>
+              <Value>{loanDetails?.endDate}</Value>
+            </DetailGroup>
+            <DetailGroup>
+              <Label>Current LTV</Label>
+              <Value>{currentLTV?.toFixed(4) ?? "-"}</Value>
+            </DetailGroup>
+            {/*  <DetailGroup>
           <Label>End Date</Label>
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
-      </DetailsContainer>
-      {loanDetails?.owner !== address && (
-        <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+          </DetailsContainer>
+          {loanDetails?.owner !== address && (
+            <ActionButton onClick={handlePayLoan}>Transfer</ActionButton>
+          )}
+        </Container>
       )}
-    </Container>
+    </>
   );
 };
 

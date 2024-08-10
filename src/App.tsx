@@ -5,6 +5,7 @@ import { lazy, Suspense } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./LoanDetails";
 import OnboardingPopup from "./Onboarding";
+import Loader from "./Loader";
 // import PortfolioDashboard from "./Portfolio";
 
 const CreateLoan = lazy(() => import("./LoanRequestForm"));
@@ -182,7 +183,7 @@ function App() {
             <Wallet />
           </UserInfo>
         </Header>
-        <Suspense fallback={<div>Loading</div>}>
+        <Suspense fallback={<Loader />}>
           <Routes>
             <Route path="/" element={<Navigate to="/browse" />} />
             <Route path="/browse" element={<BrowseLoan />} />

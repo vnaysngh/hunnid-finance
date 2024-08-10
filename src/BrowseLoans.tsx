@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context";
+import Loader from "./Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -152,16 +153,20 @@ const BrowseLoansPage = () => {
   };
 
   return (
-    <Container>
-      <Header>
-        <SearchInput
-          type="text"
-          placeholder="Search by borrower address"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <FilterContainer>
-          {/*   <FilterSelect
+    <>
+      {!currentLoans.length ? (
+        <Loader />
+      ) : (
+        <Container>
+          <Header>
+            <SearchInput
+              type="text"
+              placeholder="Search by borrower address"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <FilterContainer>
+              {/*   <FilterSelect
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -170,47 +175,51 @@ const BrowseLoansPage = () => {
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
           </FilterSelect> */}
-        </FilterContainer>
-      </Header>
-      <LoanList>
-        {currentLoans.map((loan: Loan) => (
-          <LoanCard key={loan.id} onClick={() => handleLoanClick(loan.id)}>
-            <LoanDetails>
-              <Borrower>
-                Borrower:{" "}
-                {`${loan.owner.slice(0, 4)}...${loan.owner.slice(-4)}`}
-              </Borrower>
-              <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
-            </LoanDetails>
-            <LoanDetails>
-              <Collateral>
-                <TokenIcon src="/ethereum.png" alt="ETH" />
-                <CollateralAmount>
-                  {loan.collateralAmount.toFixed(6)} ETH
-                </CollateralAmount>
-              </Collateral>
-              <Collateral>
-                <TokenIcon src="/usdc.png" alt="USDC" />
-                <CollateralAmount>{loan.borrowAmount} USDC</CollateralAmount>
-              </Collateral>
-            </LoanDetails>
-            <LoanDetails>
-              <span>Interest Rate: {loan.rate}%</span>
-              <span>Loan Term: {loan.duration} days</span>
-            </LoanDetails>
-          </LoanCard>
-        ))}
-      </LoanList>
-      <Pagination>
-        {Array.from({
-          length: Math.ceil(filteredLoans.length / loansPerPage)
-        }).map((_, index) => (
-          <PageButton key={index} onClick={() => paginate(index + 1)}>
-            {index + 1}
-          </PageButton>
-        ))}
-      </Pagination>
-    </Container>
+            </FilterContainer>
+          </Header>
+          <LoanList>
+            {currentLoans.map((loan: Loan) => (
+              <LoanCard key={loan.id} onClick={() => handleLoanClick(loan.id)}>
+                <LoanDetails>
+                  <Borrower>
+                    Borrower:{" "}
+                    {`${loan.owner.slice(0, 4)}...${loan.owner.slice(-4)}`}
+                  </Borrower>
+                  <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
+                </LoanDetails>
+                <LoanDetails>
+                  <Collateral>
+                    <TokenIcon src="/ethereum.png" alt="ETH" />
+                    <CollateralAmount>
+                      {loan.collateralAmount.toFixed(6)} ETH
+                    </CollateralAmount>
+                  </Collateral>
+                  <Collateral>
+                    <TokenIcon src="/usdc.png" alt="USDC" />
+                    <CollateralAmount>
+                      {loan.borrowAmount} USDC
+                    </CollateralAmount>
+                  </Collateral>
+                </LoanDetails>
+                <LoanDetails>
+                  <span>Interest Rate: {loan.rate}%</span>
+                  <span>Loan Term: {loan.duration} days</span>
+                </LoanDetails>
+              </LoanCard>
+            ))}
+          </LoanList>
+          <Pagination>
+            {Array.from({
+              length: Math.ceil(filteredLoans.length / loansPerPage)
+            }).map((_, index) => (
+              <PageButton key={index} onClick={() => paginate(index + 1)}>
+                {index + 1}
+              </PageButton>
+            ))}
+          </Pagination>
+        </Container>
+      )}
+    </>
   );
 };
 
