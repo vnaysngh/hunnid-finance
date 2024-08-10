@@ -152,20 +152,20 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     const accounts = await web3.eth.getAccounts();
     const userAccount = accounts[0];
 
-    const approvalTxResponse = await tokenContract.methods
-      .approve(contract.address, ethers.toBigInt(loan.borrowAmount))
-      .send({ from: userAccount })
-      .then((receipt) => receipt);
+    // const approvalTxResponse = await tokenContract.methods
+    //   .approve(contract.address, ethers.toBigInt(loan.borrowAmount))
+    //   .send({ from: userAccount })
+    //   .then((receipt) => receipt);
 
-    if (approvalTxResponse?.transactionHash) {
-      // Wait for the approval transaction to be mined
-      const receipt = await web3.eth.getTransactionReceipt(
-        approvalTxResponse?.transactionHash
-      );
-      if (!receipt || !receipt.status) {
-        throw new Error("Token approval failed");
-      }
-    }
+    // if (approvalTxResponse?.transactionHash) {
+    //   // Wait for the approval transaction to be mined
+    //   const receipt = await web3.eth.getTransactionReceipt(
+    //     approvalTxResponse?.transactionHash
+    //   );
+    //   if (!receipt || !receipt.status) {
+    //     throw new Error("Token approval failed");
+    //   }
+    // }
 
     const transaction = prepareContractCall({
       contract,

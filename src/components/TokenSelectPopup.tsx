@@ -100,6 +100,7 @@ const TokenUSDValue = styled.span`
 const TokenSelectionPopup = ({
   isOpen,
   onClose,
+  onCloseWithoutSubmit,
   onSelect,
   tokens,
   selectedTokenA,
@@ -119,11 +120,11 @@ const TokenSelectionPopup = ({
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
-      onClose &&
+      onCloseWithoutSubmit &&
       popupRef.current &&
       !popupRef.current.contains(event.target as Node)
     ) {
-      onClose();
+      onCloseWithoutSubmit();
     }
   };
 

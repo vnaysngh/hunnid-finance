@@ -313,6 +313,7 @@ const LoanDetailsPage = () => {
           <TransactionConfirmationPopup
             isOpen={isModalOpen}
             onClose={handleCloseModal}
+            onCloseWithoutSubmit={() => setIsModalOpen(false)}
             txHash={txHash}
             error={error}
           />

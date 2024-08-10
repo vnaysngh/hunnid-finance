@@ -62,11 +62,13 @@ const Button = styled.button<{ primary?: boolean }>`
 const TransactionConfirmationPopup = ({
   isOpen = true,
   onClose,
+  onCloseWithoutSubmit,
   txHash,
   error
 }: {
   isOpen?: boolean;
   onClose?: () => void;
+  onCloseWithoutSubmit?: () => void;
   txHash: string | null;
   error: Error | null;
 }) => {
@@ -77,11 +79,11 @@ const TransactionConfirmationPopup = ({
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
-      onClose &&
+      onCloseWithoutSubmit &&
       popupRef.current &&
       !popupRef.current.contains(event.target as Node)
     ) {
-      onClose();
+      onCloseWithoutSubmit();
     }
   };
 

@@ -497,6 +497,7 @@ const LoanRequestForm = () => {
           <TransactionConfirmationPopup
             isOpen={isModalOpen}
             onClose={handleCloseModal}
+            onCloseWithoutSubmit={() => setIsModalOpen(false)}
             txHash={txHash}
             error={error}
           />
@@ -504,6 +505,7 @@ const LoanRequestForm = () => {
           <TokenSelectionPopup
             isOpen={isTokenSelect}
             onClose={() => setIsTokenSelect(false)}
+            onCloseWithoutSubmit={() => setIsTokenSelect(false)}
             onSelect={handleTokenSelect}
             tokens={tokenList}
             selectedTokenA={selectedTokenA.address}
