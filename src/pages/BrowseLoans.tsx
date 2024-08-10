@@ -25,30 +25,6 @@ const Container = styled.div`
   }
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2.5rem;
-`;
-
-const FilterContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-`;
-
-const SearchInput = styled.input`
-  font-family: "Poppins", sans-serif;
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: 12px;
-  background-color: #2c2d30;
-  color: #ffffff;
-  font-size: 1rem;
-  width: 300px;
-`;
-
 const LoanList = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -180,7 +156,6 @@ const StatValue = styled.p<{ color: string }>`
 
 const BrowseLoansPage = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
   // const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredLoanList, setFilteredLoanList] = useState([]);
@@ -234,9 +209,7 @@ const BrowseLoansPage = () => {
   }, [loans]);
 
   const filteredLoans = filteredLoanList.filter((loan: Loan) => {
-    const matchesSearch = loan.owner
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const matchesSearch = loan.owner.toLowerCase();
     return matchesSearch;
   });
 
