@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
-import { useStateContext, web3 } from "./context";
+import { useStateContext } from "./context";
 import { ethers } from "ethers";
 import TransactionConfirmationPopup from "./components/TransactionPopup";
 import TokenSelectionPopup from "./TokenSelectPopup";
@@ -187,7 +186,7 @@ const LoanRequestForm = () => {
   const [selectedType, setSelectedType] = useState<string>("");
   const { publishLoan, portfolioTokens } = useStateContext();
 
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<FormDetails>({
     borrowAmount: "",
     collateralAmount: "",
@@ -228,7 +227,7 @@ const LoanRequestForm = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsModalOpen(true);
-    setIsLoading(true);
+    // setIsLoading(true);
     const response = await publishLoan({
       ...form,
       borrowAmount: ethers.parseUnits(form.borrowAmount, 18),
@@ -237,7 +236,7 @@ const LoanRequestForm = () => {
 
     if (response?.transactionHash) setTxHash(response?.transactionHash);
     else setError(response.message);
-    setIsLoading(false);
+    // setIsLoading(false);
   };
 
   useEffect(() => {

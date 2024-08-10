@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import styled from "styled-components";
 import { useLocalStorage } from "react-use"; // Or any other custom hook or method to persist data
 

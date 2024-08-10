@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context"; // Assuming you have a similar context setup
 import { useNavigate } from "react-router-dom";
@@ -15,35 +15,10 @@ const Container = styled.div`
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 2rem;
-`;
-
-const Avatar = styled.img`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-right: 1rem;
 `;
 
 const UserName = styled.h2`
@@ -175,12 +150,12 @@ const UserProfilePage = () => {
     return { activeLoans, pendingLoans, closedLoans };
   }, [parsedLoans]);
 
-  const openExplorer = () => {
+  /*  const openExplorer = () => {
     window.open(
       `https://base.blockscout.com/address/${userProfile.address}`,
       "_blank"
     );
-  };
+  }; */
 
   const handleLoanClick = (loanId: string) => {
     navigate(`/loan/${loanId}`);

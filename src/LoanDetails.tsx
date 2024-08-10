@@ -103,21 +103,6 @@ const ActionButton = styled.button`
   }
 `;
 
-const CopyButton = styled.button`
-  background: none;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-size: 1.25rem;
-  transition: color 0.3s;
-
-  &:hover {
-    color: #4a90e2; /* Change color on hover */
-  }
-`;
-
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
   const { parsedLoans, loans, approveAndPayLoan, address } = useStateContext();

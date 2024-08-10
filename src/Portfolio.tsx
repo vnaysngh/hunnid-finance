@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
 import styled from "styled-components";
-import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { useStateContext } from "./context";
 
 const Container = styled.div`

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import "./App.css";
 import Wallet from "./Wallet";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./LoanDetails";
 import OnboardingPopup from "./Onboarding";
@@ -77,7 +77,7 @@ const PartnerLogo = styled.img`
   width: 100%;
   height: auto;
   object-fit: contain;
-  height: 6rem;
+  height: 3rem;
 `;
 
 const MainContent = styled.main`

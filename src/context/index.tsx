@@ -12,9 +12,7 @@ import { injectedProvider } from "thirdweb/wallets";
 import axios from "axios";
 
 const metamaskProvider = injectedProvider("io.metamask");
-const windowObj: any = window;
-const provider = windowObj.ethereum ? windowObj.ethereum : Web3.givenProvider;
-export const web3 = new Web3(metamaskProvider);
+const web3 = new Web3(metamaskProvider);
 
 enum LoanStatus {
   Pending,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Loan, useStateContext } from "./context";
@@ -26,12 +26,6 @@ const Header = styled.div`
   margin-bottom: 2.5rem;
 `;
 
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
-`;
-
 const FilterContainer = styled.div`
   display: flex;
   align-items: center;
@@ -47,16 +41,6 @@ const SearchInput = styled.input`
   color: #ffffff;
   font-size: 1rem;
   width: 300px;
-`;
-
-const FilterSelect = styled.select`
-  font-family: "Poppins", sans-serif;
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: 12px;
-  background-color: #2c2d30;
-  color: #ffffff;
-  font-size: 1rem;
 `;
 
 const LoanList = styled.div`
@@ -143,7 +127,7 @@ const PageButton = styled.button`
 const BrowseLoansPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("all");
+  // const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const loansPerPage = 8;
   const { parsedLoans: loans } = useStateContext();
@@ -152,9 +136,9 @@ const BrowseLoansPage = () => {
     const matchesSearch = loan.owner
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filter === "all" || loan.status.toLowerCase() === filter;
-    return matchesSearch && matchesFilter;
+    // const matchesFilter =
+    //   filter === "all" || loan.status.toLowerCase() === filter;
+    return matchesSearch;
   });
 
   const indexOfLastLoan = currentPage * loansPerPage;

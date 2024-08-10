@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import styled from "styled-components";
-import { ethers } from "ethers";
 import LoadingSpinner from "./Spinner";
 
 const Overlay = styled.div`
@@ -41,13 +40,6 @@ const Message = styled.p`
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-`;
-
-const CloseIcon = styled.div`
-  display: flex;
-  justify-content: end;
-  cursor: pointer;
-  font-size: 1rem;
 `;
 
 const Button = styled.button<{ primary?: boolean }>`
