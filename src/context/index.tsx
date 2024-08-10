@@ -1,5 +1,9 @@
 import { useContext, createContext, useMemo, useEffect, useState } from "react";
-import { useActiveAccount, useReadContract } from "thirdweb/react";
+import {
+  useActiveAccount,
+  useActiveWalletChain,
+  useReadContract
+} from "thirdweb/react";
 import { defineChain, getContract, prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
 import { ethers } from "ethers";
@@ -10,6 +14,7 @@ import ABI from "../abi/abi.json";
 
 import { injectedProvider } from "thirdweb/wallets";
 import axios from "axios";
+import { getContractAddress } from "../constants";
 
 const metamaskProvider = injectedProvider("io.metamask");
 const web3 = new Web3(metamaskProvider);
@@ -40,20 +45,24 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   const [portfolioTokens, setPortfolioTokens] = useState([]);
   const [totalValue, setTotalValue] = useState(0);
   const { mutateAsync: sendTransaction } = useSendTransaction();
+  const activeChain = useActiveWalletChain();
+  const activeAccount = useActiveAccount();
+  const address = getContractAddress[activeChain?.id.toString() ?? "8453"];
+
   // connect to your contract
   const contract = getContract({
     client,
-    chain: defineChain(8453),
-    address: "0xACcB7E596586468C363E8CE48d2f9F578a505030"
+    chain: defineChain(activeChain?.id ?? 8453),
+    address
   });
 
-  const activeAccount = useActiveAccount();
+  const chain = activeChain?.id === 10 ? "optimism" : "base";
 
   useEffect(() => {
     const getTokens = async () => {
       try {
         const response = await axios.get(
-          `https://api.portals.fi/v2/account?owner=${activeAccount?.address}&networks=base&networks=base`,
+          `https://api.portals.fi/v2/account?owner=${activeAccount?.address}&networks=${chain}`,
           {
             headers: {
               authorization: import.meta.env.VITE_PORTALS_API_KEY
@@ -75,7 +84,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     };
 
     if (activeAccount?.address) getTokens();
-  }, [activeAccount]);
+  }, [activeAccount, activeChain]);
 
   const publishLoan = async (form: FormDetails) => {
     if (!activeAccount?.address) {
@@ -235,6 +244,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
   return (
     <StateContext.Provider
       value={{
+        chain,
         contract,
         address: activeAccount?.address,
         loans,

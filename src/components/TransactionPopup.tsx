@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import LoadingSpinner from "./Spinner";
+import { useStateContext } from "../context";
 
 const Overlay = styled.div`
   position: fixed;
@@ -72,6 +73,7 @@ const TransactionConfirmationPopup = ({
   if (!isOpen) return null;
 
   const popupRef = useRef<HTMLDivElement>(null);
+  const { chain } = useStateContext();
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -100,7 +102,7 @@ const TransactionConfirmationPopup = ({
               Your transaction has been submitted. Check your transaction here
               on{" "}
               <a
-                href={`https://base.blockscout.com/tx/${txHash}`}
+                href={`https://${chain}.blockscout.com/tx/${txHash}`}
                 target="_blank"
                 style={{ color: "#e16abd" }}
               >

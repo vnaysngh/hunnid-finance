@@ -114,7 +114,7 @@ const ActionButton = styled.button<{ status: string }>`
 
 const LoanDetailsPage = () => {
   const { loanId } = useParams();
-  const { parsedLoans, loans, approveAndPayLoan, address, deleteLoan } =
+  const { chain, parsedLoans, loans, approveAndPayLoan, address, deleteLoan } =
     useStateContext();
   const [price, setPrice] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -181,7 +181,7 @@ const LoanDetailsPage = () => {
 
   const openExplorer = () => {
     window.open(
-      `https://base.blockscout.com/address/${loanDetails.owner}`,
+      `https://${chain}.blockscout.com/address/${loanDetails.owner}`,
       "_blank"
     );
   };

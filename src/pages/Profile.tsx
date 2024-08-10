@@ -151,13 +151,6 @@ const UserProfilePage = () => {
     return { activeLoans, pendingLoans, closedLoans };
   }, [parsedLoans]);
 
-  /*  const openExplorer = () => {
-    window.open(
-      `https://base.blockscout.com/address/${userProfile.address}`,
-      "_blank"
-    );
-  }; */
-
   const handleLoanClick = (loanId: string) => {
     navigate(`/loan/${loanId}`);
   };

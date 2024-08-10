@@ -11,7 +11,7 @@ import Loader from "./components/Loader";
 const CreateLoan = lazy(() => import("./pages/LoanRequestForm"));
 const BrowseLoan = lazy(() => import("./pages/BrowseLoans"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
-const Profile = lazy(() => import("./pages/Profile"));
+// const Profile = lazy(() => import("./pages/Profile"));
 
 const AppContainer = styled.div`
   display: flex;
@@ -143,11 +143,12 @@ function App() {
 
   // Sample partner logos (replace with actual partner logos)
   const partnerLogos = [
+    { src: "/base-logo.png", alt: "Base" },
+    { src: "/optimism-logo.svg", alt: "Optimism" },
     {
-      src: "https://cdn.prod.website-files.com/637232ff20f97141fc60d89c/6373de4372627430292985b2_logo.svg",
+      src: "/blockscout.svg",
       alt: "Blockscout"
     },
-    { src: "/base-logo.png", alt: "Base" },
     { src: "/thirdweb-logo.png", alt: "Thirdweb" }
   ];
 
