@@ -7,6 +7,11 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import { FaCopy } from "react-icons/fa"; // Import an icon library of your choice
 import Loader from "../components/Loader";
 import TransactionConfirmationPopup from "../components/TransactionPopup";
+import { TokenList } from "../utils/Tokenlist";
+
+interface Token {
+  address: string;
+}
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -143,9 +148,30 @@ const LoanDetailsPage = () => {
     getUSDPrice();
   }, []);
 
-  const loanDetails: Loan = useMemo(() => {
+  const loanDetails: any = useMemo(() => {
     if (parsedLoans?.length && loanId) {
-      return parsedLoans.filter((loan: Loan) => loan.id == loanId)?.[0];
+      const tokenListMap: Record<string, Token> = {};
+
+      // Normalize addresses to lowercase and build the map
+      TokenList.forEach((token) => {
+        tokenListMap[token.address.toLowerCase()] = token;
+      });
+
+      let loanMetadata: any;
+
+      parsedLoans.forEach((loan: Loan) => {
+        const normalizedBorrowToken = loan.borrowToken.toLowerCase();
+        const normalizedCollateralToken = loan.collateralToken.toLowerCase();
+        if (loan.id === loanId) {
+          loanMetadata = {
+            ...loan,
+            tokenA: tokenListMap[normalizedBorrowToken] || null, // Set to null if not found
+            tokenB: tokenListMap[normalizedCollateralToken] || null // Set to null if not found
+          };
+        }
+      });
+
+      return loanMetadata;
     }
   }, [loanId, parsedLoans]);
 
@@ -212,15 +238,16 @@ const LoanDetailsPage = () => {
             <DetailGroup>
               <Label>Borrowed Amount</Label>
               <Value>
-                <TokenIcon src="/usdc.png" alt="USDC" />
-                {loanDetails?.borrowAmount} USDC
+                <TokenIcon src={loanDetails.tokenA.image} alt="USDC" />
+                {loanDetails?.borrowAmount} {loanDetails.tokenA.symbol}
               </Value>
             </DetailGroup>
             <DetailGroup>
               <Label>Collateral Amount</Label>
               <Value>
-                <TokenIcon src="/ethereum.png" alt="ETH" />
-                {loanDetails?.collateralAmount.toFixed(6)} ETH
+                <TokenIcon src={loanDetails.tokenB.image} alt="ETH" />
+                {loanDetails?.collateralAmount.toFixed(6)}{" "}
+                {loanDetails.tokenB.symbol}
               </Value>
             </DetailGroup>
             <DetailGroup>

@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Loan, useStateContext } from "../context";
 import Loader from "../components/Loader";
+import { TokenList } from "../utils/Tokenlist";
+
+interface Token {
+  address: string;
+}
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -130,15 +135,42 @@ const BrowseLoansPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const loansPerPage = 8;
+  const [filteredLoanList, setFilteredLoanList] = useState([]);
   const { parsedLoans: loans } = useStateContext();
+  const loansPerPage = 8;
 
-  const filteredLoans = loans.filter((loan: Loan) => {
+  useEffect(() => {
+    const getFilteredLoans = () => {
+      const tokenListMap: Record<string, Token> = {};
+
+      // Normalize addresses to lowercase and build the map
+      TokenList.forEach((token) => {
+        tokenListMap[token.address.toLowerCase()] = token;
+      });
+
+      const filteredList = loans.map((loan: Loan) => {
+        // Normalize loan addresses before looking them up
+        const normalizedBorrowToken = loan.borrowToken.toLowerCase();
+        const normalizedCollateralToken = loan.collateralToken.toLowerCase();
+
+        return {
+          ...loan,
+          tokenA: tokenListMap[normalizedBorrowToken] || null, // Set to null if not found
+          tokenB: tokenListMap[normalizedCollateralToken] || null // Set to null if not found
+        };
+      });
+
+      // Set the filtered list
+      setFilteredLoanList(filteredList);
+    };
+
+    if (loans.length) getFilteredLoans();
+  }, [loans]);
+
+  const filteredLoans = filteredLoanList.filter((loan: Loan) => {
     const matchesSearch = loan.owner
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-    // const matchesFilter =
-    //   filter === "all" || loan.status.toLowerCase() === filter;
     return matchesSearch;
   });
 
@@ -178,7 +210,7 @@ const BrowseLoansPage = () => {
             </FilterContainer>
           </Header>
           <LoanList>
-            {currentLoans.map((loan: Loan) => (
+            {currentLoans.map((loan: any) => (
               <LoanCard key={loan.id} onClick={() => handleLoanClick(loan.id)}>
                 <LoanDetails>
                   <Borrower>
@@ -189,15 +221,15 @@ const BrowseLoansPage = () => {
                 </LoanDetails>
                 <LoanDetails>
                   <Collateral>
-                    <TokenIcon src="/ethereum.png" alt="ETH" />
+                    <TokenIcon src={loan.tokenB.image} alt="ETH" />
                     <CollateralAmount>
-                      {loan.collateralAmount.toFixed(6)} ETH
+                      {loan.collateralAmount.toFixed(6)} {loan.tokenB.symbol}
                     </CollateralAmount>
                   </Collateral>
                   <Collateral>
-                    <TokenIcon src="/usdc.png" alt="USDC" />
+                    <TokenIcon src={loan.tokenA.image} alt="USDC" />
                     <CollateralAmount>
-                      {loan.borrowAmount} USDC
+                      {loan.borrowAmount} {loan.tokenA.symbol}
                     </CollateralAmount>
                   </Collateral>
                 </LoanDetails>

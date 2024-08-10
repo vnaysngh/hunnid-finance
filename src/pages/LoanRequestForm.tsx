@@ -244,7 +244,6 @@ const LoanRequestForm = () => {
     e.preventDefault();
     setIsModalOpen(true);
 
-    console.log(Math.ceil(Number(form.collateralAmount)));
     // setIsLoading(true);
     const response = await publishLoan({
       ...form,
