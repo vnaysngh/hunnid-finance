@@ -3,10 +3,10 @@ import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { defineChain, getContract, prepareContractCall } from "thirdweb";
 import { useSendTransaction } from "thirdweb/react";
 import { ethers } from "ethers";
-import { client } from "../client";
-import { FormDetails } from "../LoanRequestForm";
+import { client } from "../config/client";
+import { FormDetails } from "../pages/LoanRequestForm";
 import Web3 from "web3";
-import ABI from "../abi.json";
+import ABI from "../abi/abi.json";
 
 import { injectedProvider } from "thirdweb/wallets";
 import axios from "axios";

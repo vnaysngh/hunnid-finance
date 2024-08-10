@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Loan, useStateContext } from "./context";
+import { Loan, useStateContext } from "../context";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { FaCopy } from "react-icons/fa"; // Import an icon library of your choice
-import Loader from "./Loader";
+import Loader from "../components/Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;

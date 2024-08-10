@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import styled from "styled-components";
-import { Loan, useStateContext } from "./context"; // Assuming you have a similar context setup
+import { Loan, useStateContext } from "../context"; // Assuming you have a similar context setup
 import { useNavigate } from "react-router-dom";
-import Loader from "./Loader";
+import Loader from "../components/Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Loan, useStateContext } from "./context";
-import Loader from "./Loader";
+import { Loan, useStateContext } from "../context";
+import Loader from "../components/Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;

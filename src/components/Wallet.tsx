@@ -1,5 +1,5 @@
 import { createWallet, inAppWallet } from "thirdweb/wallets";
-import { client } from "./client";
+import { client } from "../config/client";
 import { ConnectButton } from "thirdweb/react";
 import { base, baseSepolia } from "thirdweb/chains";
 

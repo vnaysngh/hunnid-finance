@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { useStateContext } from "./context";
+import { useStateContext } from "../context";
 import { ethers } from "ethers";
-import TransactionConfirmationPopup from "./components/TransactionPopup";
-import TokenSelectionPopup from "./TokenSelectPopup";
-import { TokenList } from "./Tokenlist";
-import Loader from "./Loader";
+import TransactionConfirmationPopup from "../components/TransactionPopup";
+import TokenSelectionPopup from "../components/TokenSelectPopup";
+import { TokenList } from "../utils/Tokenlist";
+import Loader from "../components/Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;

@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { useStateContext } from "./context";
-import Loader from "./Loader";
+import { useStateContext } from "../context";
+import Loader from "../components/Loader";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;

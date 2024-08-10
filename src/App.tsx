@@ -1,17 +1,17 @@
 import styled from "styled-components";
 import "./App.css";
-import Wallet from "./Wallet";
+import Wallet from "./components/Wallet";
 import { lazy, Suspense } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import LoanDetailsPage from "./LoanDetails";
-import OnboardingPopup from "./Onboarding";
-import Loader from "./Loader";
+import LoanDetailsPage from "./pages/LoanDetails";
+import OnboardingPopup from "./components/Onboarding";
+import Loader from "./components/Loader";
 // import PortfolioDashboard from "./Portfolio";
 
-const CreateLoan = lazy(() => import("./LoanRequestForm"));
-const BrowseLoan = lazy(() => import("./BrowseLoans"));
-const Portfolio = lazy(() => import("./Portfolio"));
-const Profile = lazy(() => import("./Profile"));
+const CreateLoan = lazy(() => import("./pages/LoanRequestForm"));
+const BrowseLoan = lazy(() => import("./pages/BrowseLoans"));
+const Portfolio = lazy(() => import("./pages/Portfolio"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 const AppContainer = styled.div`
   display: flex;
