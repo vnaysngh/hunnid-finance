@@ -6,6 +6,7 @@ import TransactionConfirmationPopup from "../components/TransactionPopup";
 import TokenSelectionPopup from "../components/TokenSelectPopup";
 import { TokenList } from "../utils/Tokenlist";
 import Loader from "../components/Loader";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -181,6 +182,7 @@ export type FormDetails = {
 };
 
 const LoanRequestForm = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTokenSelect, setIsTokenSelect] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -243,6 +245,7 @@ const LoanRequestForm = () => {
     setError(null);
     setTxHash(null);
     setIsModalOpen(false);
+    navigate("/browse");
   };
 
   const handleFormFieldsChange = (e: any) => {

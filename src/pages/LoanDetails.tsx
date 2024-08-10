@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Loan, useStateContext } from "../context";
 import { useEffect, useMemo, useState } from "react";
@@ -105,14 +105,15 @@ const ActionButton = styled.button<{ status: string }>`
   transition: background-color 0.3s;
   margin-top: 2.5rem;
   background-color: ${(props) =>
-    props.status === "Pending"
+    props.status === "delete"
       ? "#933636"
-      : props.status === "Active"
-      ? "#ff9800"
-      : "#4caf50"};
+      : props.status === "transfer"
+      ? "#4caf50"
+      : "#ff9800"};
 `;
 
 const LoanDetailsPage = () => {
+  const navigate = useNavigate();
   const { loanId } = useParams();
   const { chain, parsedLoans, loans, approveAndPayLoan, address, deleteLoan } =
     useStateContext();
@@ -201,10 +202,18 @@ const LoanDetailsPage = () => {
     else setError(response.message);
   };
 
+  const handleRepayLoan = async () => {
+    setIsModalOpen(true);
+    const response = await deleteLoan(loanId);
+    if (response?.transactionHash) setTxHash(response?.transactionHash);
+    else setError(response.message);
+  };
+
   const handleCloseModal = () => {
     setError(null);
     setTxHash(null);
     setIsModalOpen(false);
+    navigate("/browse");
   };
 
   return (
@@ -274,27 +283,21 @@ const LoanDetailsPage = () => {
           </DetailsContainer>
           {loanDetails?.owner !== address &&
             loanDetails.status === "Pending" && (
-              <ActionButton status={loanDetails.status} onClick={handlePayLoan}>
+              <ActionButton status={"transfer"} onClick={handlePayLoan}>
                 Transfer
               </ActionButton>
             )}
 
           {loanDetails?.owner === address &&
             loanDetails.status !== "Active" && (
-              <ActionButton
-                status={loanDetails.status}
-                onClick={handleDeleteLoan}
-              >
+              <ActionButton status={"delete"} onClick={handleDeleteLoan}>
                 Delete
               </ActionButton>
             )}
 
           {loanDetails?.owner === address &&
             loanDetails.status === "Active" && (
-              <ActionButton
-                status={loanDetails.status}
-                onClick={handleDeleteLoan}
-              >
+              <ActionButton status={"repay"} onClick={handleRepayLoan}>
                 Repay
               </ActionButton>
             )}

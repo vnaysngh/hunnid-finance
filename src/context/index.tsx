@@ -172,7 +172,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
       method:
         "function approveAndPayLoan(uint256 _id, address _owner, uint256 _amount)",
       params: [
-        ethers.toBigInt("0"),
+        ethers.toBigInt(loan.id),
         loan.owner,
         ethers.toBigInt(loan.borrowAmount)
       ]
