@@ -199,6 +199,15 @@ const LoanRequestForm = () => {
     selectedTokenB: {}
   });
 
+  const {
+    borrowAmount,
+    collateralAmount,
+    rate,
+    duration,
+    selectedTokenA,
+    selectedTokenB
+  } = form;
+
   useEffect(() => {
     const setFilteredTokens = () => {
       const filteredTokenList = portfolioTokens.filter((token: any) => {
@@ -247,13 +256,10 @@ const LoanRequestForm = () => {
     // setIsLoading(true);
     const response = await publishLoan({
       ...form,
-      borrowAmount: ethers.parseUnits(
-        form.borrowAmount,
-        form.selectedTokenA.decimals
-      ),
+      borrowAmount: ethers.parseUnits(borrowAmount, selectedTokenA.decimals),
       collateralAmount: ethers.parseUnits(
-        form.collateralAmount,
-        form.selectedTokenB.decimals
+        collateralAmount,
+        selectedTokenB.decimals
       )
     });
 
@@ -263,55 +269,46 @@ const LoanRequestForm = () => {
   };
 
   useEffect(() => {
-    if (!form.selectedTokenB.price) return;
-    const collateralAmountInUSDC = Number(form.borrowAmount) / 0.6;
-    const collateralAmountInETH =
-      collateralAmountInUSDC / form.selectedTokenB.price;
+    if (!selectedTokenB.price || !borrowAmount || !rate) return;
+    const collateralAmountInUSDC =
+      (Number(borrowAmount) * selectedTokenA.price) / 0.6;
+    const collateralAmountInETH = collateralAmountInUSDC / selectedTokenB.price;
     setForm({
       ...form,
-      collateralAmount: collateralAmountInETH.toFixed(
-        form.selectedTokenB.decimals
-      )
+      collateralAmount: collateralAmountInETH.toFixed(selectedTokenB.decimals)
     });
   }, [
-    form.borrowAmount,
-    form.collateralAmount,
-    form.rate,
-    form.duration,
-    form.selectedTokenB.balance
+    borrowAmount,
+    collateralAmount,
+    rate,
+    duration,
+    selectedTokenB.balance,
+    selectedTokenA,
+    selectedTokenB
   ]);
 
   const collateralAmountInUSD = useMemo(() => {
-    if (!form.selectedTokenB.price || !form.selectedTokenB.balance) return 0;
-    else
-      return (
-        Number(form.selectedTokenB.price) * Number(form.selectedTokenB.balance)
-      );
-  }, [form.selectedTokenB.balance, form.selectedTokenB.price]);
+    if (!selectedTokenB.price || !selectedTokenB.balance) return 0;
+    else return Number(selectedTokenB.price) * Number(selectedTokenB.balance);
+  }, [selectedTokenB.balance, selectedTokenB.price]);
 
   const totalInterestAmount = useMemo(() => {
-    if (!form.borrowAmount || !form.rate || !form.collateralAmount) return 0;
-    else return (Number(form.borrowAmount) * Number(form.rate)) / 100;
-  }, [
-    collateralAmountInUSD,
-    form.borrowAmount,
-    form.collateralAmount,
-    form.rate
-  ]);
+    if (!borrowAmount || !rate || !collateralAmount) return 0;
+    else return (Number(borrowAmount) * Number(rate)) / 100;
+  }, [collateralAmountInUSD, borrowAmount, collateralAmount, rate]);
 
   const totalRepaymentAmount = useMemo(() => {
     if (!totalInterestAmount) return 0;
-    return Number(form.borrowAmount) + totalInterestAmount;
+    return Number(borrowAmount) + totalInterestAmount;
   }, [totalInterestAmount]);
 
-  const liqiuidationPrice = useMemo(() => {
-    if (!totalRepaymentAmount || !form.collateralAmount) return 0;
+  const liquidationPrice = useMemo(() => {
+    if (!totalRepaymentAmount || !collateralAmount) return 0;
     const collateralRequired = totalRepaymentAmount / 0.83;
-    return collateralRequired / Number(form.collateralAmount);
-  }, [totalRepaymentAmount, form.collateralAmount]);
+    return collateralRequired / Number(collateralAmount);
+  }, [totalRepaymentAmount, collateralAmount]);
 
-  const isError =
-    Number(form.collateralAmount) > Number(form.selectedTokenB.balance);
+  const isError = Number(collateralAmount) > Number(selectedTokenB.balance);
 
   const handleTokenSelectPopup = (type: string) => {
     setIsTokenSelect(true);
@@ -349,25 +346,25 @@ const LoanRequestForm = () => {
                   type="number"
                   name="borrowAmount"
                   placeholder="100"
-                  value={form.borrowAmount}
+                  value={borrowAmount}
                   onChange={handleFormFieldsChange}
                 />
                 <TokenSelect
                   onClick={() => handleTokenSelectPopup("selectedTokenA")}
                 >
-                  <TokenIcon src={form.selectedTokenA.image} alt="USDC" />
-                  {form.selectedTokenA?.symbol}
+                  <TokenIcon src={selectedTokenA.image} alt="USDC" />
+                  {selectedTokenA?.symbol}
                 </TokenSelect>
               </InputWrapper>
               <Balance>
                 Balance:{" "}
-                {form.selectedTokenA.name
-                  ? `${form.selectedTokenA.balance.toFixed(3)} ${
-                      form.selectedTokenA?.symbol
+                {selectedTokenA.name
+                  ? `${selectedTokenA.balance.toFixed(3)} ${
+                      selectedTokenA?.symbol
                     } 
               ${
-                form.selectedTokenA.balanceUSD
-                  ? `(~$${form.selectedTokenA.balanceUSD.toFixed(2)})`
+                selectedTokenA.balanceUSD
+                  ? `(~$${selectedTokenA.balanceUSD.toFixed(2)})`
                   : ""
               }`
                   : "N/A"}
@@ -381,14 +378,14 @@ const LoanRequestForm = () => {
                   type="number"
                   name="collateralAmount"
                   placeholder="0.25"
-                  value={form.collateralAmount}
+                  value={collateralAmount}
                   onChange={handleFormFieldsChange}
                 />
                 <TokenSelect
                   onClick={() => handleTokenSelectPopup("selectedTokenB")}
                 >
-                  <TokenIcon src={form.selectedTokenB.image} alt="ETH" />
-                  {form.selectedTokenB?.symbol}
+                  <TokenIcon src={selectedTokenB.image} alt="ETH" />
+                  {selectedTokenB?.symbol}
                 </TokenSelect>
               </InputWrapper>
               {isError && (
@@ -398,13 +395,13 @@ const LoanRequestForm = () => {
               )}
               <Balance>
                 Balance:{" "}
-                {form.selectedTokenB.name
-                  ? `${form.selectedTokenB.balance.toFixed(3)} ${
-                      form.selectedTokenB?.symbol
+                {selectedTokenB.name
+                  ? `${selectedTokenB.balance.toFixed(3)} ${
+                      selectedTokenB?.symbol
                     } 
               ${
-                form.selectedTokenB.balanceUSD
-                  ? `(~$${form.selectedTokenB.balanceUSD.toFixed(2)})`
+                selectedTokenB.balanceUSD
+                  ? `(~$${selectedTokenB.balanceUSD.toFixed(2)})`
                   : ""
               }`
                   : "N/A"}
@@ -422,7 +419,7 @@ const LoanRequestForm = () => {
                 step="0.1"
                 min="0"
                 max="100"
-                value={form.rate}
+                value={rate}
                 onChange={handleFormFieldsChange}
               />
             </InputWrapper>
@@ -443,7 +440,7 @@ const LoanRequestForm = () => {
               {[7, 14, 30].map((t) => (
                 <TermButton
                   key={t}
-                  active={form.duration === t}
+                  active={duration === t}
                   onClick={() => setForm({ ...form, duration: t })}
                 >
                   {t} Days
@@ -459,35 +456,32 @@ const LoanRequestForm = () => {
             </InfoItem>
             <InfoItem>
               <InfoLabel>
-                Liquidation Price ({form.selectedTokenB.symbol}/
-                {form.selectedTokenA.symbol})
+                Liquidation Price ({selectedTokenB.symbol}/
+                {selectedTokenA.symbol})
               </InfoLabel>
               <InfoValue style={{ color: "red" }}>
-                {liqiuidationPrice.toFixed(4)}
+                {liquidationPrice.toFixed(4)}
               </InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>Total Interest Amount</InfoLabel>
               <InfoValue>
-                {totalInterestAmount} {form.selectedTokenA.symbol}
+                {totalInterestAmount} {selectedTokenA.symbol}
               </InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>Total Repayment Amount</InfoLabel>
               <InfoValue>
-                {totalRepaymentAmount} {form.selectedTokenA.symbol}
+                {totalRepaymentAmount} {selectedTokenA.symbol}
               </InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>
-                Price ({form.selectedTokenB.symbol}/{form.selectedTokenA.symbol}
-                )
+                Price ({selectedTokenB.symbol}/{selectedTokenA.symbol})
               </InfoLabel>
               <InfoValue>
-                {form.selectedTokenB.price
-                  ? (
-                      form.selectedTokenB.price / form.selectedTokenA.price
-                    ).toFixed(6)
+                {selectedTokenB.price
+                  ? (selectedTokenB.price / selectedTokenA.price).toFixed(6)
                   : "N/A"}
               </InfoValue>
             </InfoItem>
@@ -509,8 +503,8 @@ const LoanRequestForm = () => {
             onClose={() => setIsTokenSelect(false)}
             onSelect={handleTokenSelect}
             tokens={tokenList}
-            selectedTokenA={form.selectedTokenA.address}
-            selectedTokenB={form.selectedTokenB.address}
+            selectedTokenA={selectedTokenA.address}
+            selectedTokenB={selectedTokenB.address}
             type={selectedType}
           />
         </Container>
