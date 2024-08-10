@@ -130,6 +130,54 @@ const PageButton = styled.button`
   }
 `;
 
+const StatsContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+`;
+
+const StatBox = styled.div`
+  background-color: #2c2d30;
+  border-radius: 16px;
+  padding: 1.5rem;
+  flex: 1;
+  margin: 0 1rem;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+
+  &:first-child {
+    margin-left: 0;
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+`;
+
+const StatTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #a0a0a0;
+`;
+
+const StatValue = styled.p<{ color: string }>`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${(props) => props.color};
+  text-shadow: 0 0 10px ${(props) => props.color}40;
+  transition: color 0.3s;
+
+  ${StatBox}:hover & {
+    color: ${(props) => props.color}CC;
+  }
+`;
+
 const BrowseLoansPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,6 +185,11 @@ const BrowseLoansPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredLoanList, setFilteredLoanList] = useState([]);
   const { parsedLoans: loans } = useStateContext();
+  const [stats, setStats] = useState({
+    active: 0,
+    pending: 0,
+    closed: 0
+  });
   const loansPerPage = 8;
 
   useEffect(() => {
@@ -162,6 +215,19 @@ const BrowseLoansPage = () => {
 
       // Set the filtered list
       setFilteredLoanList(filteredList);
+
+      // Calculate stats
+      const newStats = filteredList.reduce(
+        (acc: any, loan: Loan) => {
+          if (loan.status === "Active") acc.active++;
+          else if (loan.status === "Pending") acc.pending++;
+          else if (loan.status === "Repaid") acc.closed++;
+          return acc;
+        },
+        { active: 0, pending: 0, closed: 0 }
+      );
+
+      setStats(newStats);
     };
 
     if (loans.length) getFilteredLoans();
@@ -190,25 +256,20 @@ const BrowseLoansPage = () => {
         <Loader />
       ) : (
         <Container>
-          <Header>
-            <SearchInput
-              type="text"
-              placeholder="Search by borrower address"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <FilterContainer>
-              {/*   <FilterSelect
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-          </FilterSelect> */}
-            </FilterContainer>
-          </Header>
+          <StatsContainer>
+            <StatBox>
+              <StatTitle>Active Loans</StatTitle>
+              <StatValue color="#3498db">{stats.active}</StatValue>
+            </StatBox>
+            <StatBox>
+              <StatTitle>Pending Loans</StatTitle>
+              <StatValue color="#ff9800">{stats.pending}</StatValue>
+            </StatBox>
+            <StatBox>
+              <StatTitle>Repiad Loans</StatTitle>
+              <StatValue color="#4caf50">{stats.closed}</StatValue>
+            </StatBox>
+          </StatsContainer>
           <LoanList>
             {currentLoans.map((loan: any) => (
               <LoanCard key={loan.id} onClick={() => handleLoanClick(loan.id)}>

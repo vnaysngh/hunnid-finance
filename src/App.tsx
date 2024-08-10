@@ -6,6 +6,8 @@ import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoanDetailsPage from "./pages/LoanDetails";
 import OnboardingPopup from "./components/Onboarding";
 import Loader from "./components/Loader";
+import { useStateContext } from "./context";
+import { navItems, routeMappings } from "./constants";
 // import PortfolioDashboard from "./Portfolio";
 
 const CreateLoan = lazy(() => import("./pages/LoanRequestForm"));
@@ -116,21 +118,16 @@ const StyledLink = styled(Link)`
   color: inherit;
 `;
 
+const BlockscoutIcon = styled.a`
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  cursor: pointer;
+`;
+
 function App() {
   const location = useLocation();
-  const navItems = [
-    { icon: "🔍", text: "Browse", key: "browse", path: "/" },
-    { icon: "💰", text: "Borrow", key: "create", path: "/create" },
-    { icon: "📂", text: "Portfolio", key: "portfolio", path: "/portfolio" }
-    // { icon: "👤", text: "Profile", key: "profile", path: "/profile" }
-  ];
-
-  const routeMappings: Record<string, { title: string; navItem: string }> = {
-    browse: { title: "Browse Active Loans", navItem: "browse" },
-    create: { title: "Create Borrow Request", navItem: "create" },
-    // profile: { title: "User Profile", navItem: "profile" },
-    portfolio: { title: "Portfolio Dashboard", navItem: "portfolio" }
-  };
+  const { address, chain } = useStateContext();
 
   const currentRoute = Object.keys(routeMappings).find((route) =>
     location.pathname.includes(route)
@@ -182,6 +179,19 @@ function App() {
           <PageTitle>{pageTitle}</PageTitle>
           <UserInfo>
             <Wallet />
+            {address && (
+              <BlockscoutIcon
+                href={`https://${chain}.blockscout.com/address/${address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src="/blockscout-logo.png"
+                  alt="Blockscout Explorer"
+                  style={{ height: "4rem", width: "4rem", borderRadius: "50%" }}
+                />
+              </BlockscoutIcon>
+            )}
           </UserInfo>
         </Header>
         <Suspense fallback={<Loader />}>

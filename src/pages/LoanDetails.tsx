@@ -289,27 +289,32 @@ const LoanDetailsPage = () => {
           <Value>{loanDetails?.endDate}</Value>
         </DetailGroup> */}
           </DetailsContainer>
-          {loanDetails?.owner !== address &&
-            loanDetails.status === "Pending" && (
-              <ActionButton status={"transfer"} onClick={handlePayLoan}>
-                Transfer
-              </ActionButton>
-            )}
+          <>
+            {loanDetails.status !== "Repaid" ? (
+              <>
+                {loanDetails?.owner !== address &&
+                  loanDetails.status === "Pending" && (
+                    <ActionButton status={"transfer"} onClick={handlePayLoan}>
+                      Transfer
+                    </ActionButton>
+                  )}
 
-          {loanDetails?.owner === address &&
-            loanDetails.status !== "Active" && (
-              <ActionButton status={"delete"} onClick={handleDeleteLoan}>
-                Delete
-              </ActionButton>
-            )}
+                {loanDetails?.owner === address &&
+                  loanDetails.status !== "Active" && (
+                    <ActionButton status={"delete"} onClick={handleDeleteLoan}>
+                      Delete
+                    </ActionButton>
+                  )}
 
-          {loanDetails?.owner === address &&
-            loanDetails.status === "Active" && (
-              <ActionButton status={"repay"} onClick={handleRepayLoan}>
-                Repay
-              </ActionButton>
-            )}
-
+                {loanDetails?.owner === address &&
+                  loanDetails.status === "Active" && (
+                    <ActionButton status={"repay"} onClick={handleRepayLoan}>
+                      Repay
+                    </ActionButton>
+                  )}
+              </>
+            ) : null}
+          </>
           <TransactionConfirmationPopup
             isOpen={isModalOpen}
             onClose={handleCloseModal}

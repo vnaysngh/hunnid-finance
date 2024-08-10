@@ -229,7 +229,7 @@ const LoanRequestForm = () => {
         (token: any) => token.symbol === "USDC"
       );
       const collateralToken = tokenList.find(
-        (token: any) => token.symbol === "ETH"
+        (token: any) => token.symbol === "AERO"
       );
 
       setForm({
