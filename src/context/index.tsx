@@ -101,42 +101,45 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     const userAccount = accounts[0];
 
     const approvalTxResponse = await tokenContract.methods
-      .approve(contract.address, ethers.toBigInt(form.collateralAmount))
+      .approve(contract.address, ethers.toBigInt(ethers.MaxUint256))
       .send({ from: userAccount })
       .then((receipt) => receipt);
 
-    // Wait for the approval transaction to be mined
-    const receipt = await web3.eth.getTransactionReceipt(
-      approvalTxResponse?.transactionHash
-    );
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
+    }
 
     const startDate = Math.round(new Date().getTime() / 1000);
     const endDate = startDate + form.duration * 86400;
 
-    if (receipt && receipt.status) {
-      const transaction = prepareContractCall({
-        contract,
-        method:
-          "function createLoan(address _owner, address _borrowToken, address _collateralToken, uint256 _borrowAmount, uint256 _collateralAmount, uint256 _rate, uint256 _duration, uint256 _startDate, uint256 _endDate) returns (uint256)",
-        params: [
-          activeAccount?.address,
-          form.selectedTokenA.address,
-          form.selectedTokenB.address,
-          ethers.toBigInt(form.borrowAmount),
-          ethers.toBigInt(form.collateralAmount),
-          ethers.toBigInt(form.rate),
-          ethers.toBigInt(form.duration),
-          ethers.toBigInt(startDate),
-          ethers.toBigInt(endDate)
-        ]
+    const transaction = prepareContractCall({
+      contract,
+      method:
+        "function createLoan(address _owner, address _borrowToken, address _collateralToken, uint256 _borrowAmount, uint256 _collateralAmount, uint256 _rate, uint256 _duration, uint256 _startDate, uint256 _endDate) returns (uint256)",
+      params: [
+        activeAccount?.address,
+        form.selectedTokenA.address,
+        form.selectedTokenB.address,
+        ethers.toBigInt(form.borrowAmount),
+        ethers.toBigInt(form.collateralAmount),
+        ethers.toBigInt(form.rate),
+        ethers.toBigInt(form.duration),
+        ethers.toBigInt(startDate),
+        ethers.toBigInt(endDate)
+      ]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
       });
-      return sendTransaction(transaction)
-        .then((res) => res)
-        .catch((e) => {
-          console.log(e);
-          return e;
-        });
-    }
   };
 
   const approveAndPayLoan = async (loan: Loan) => {
@@ -150,33 +153,36 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     const userAccount = accounts[0];
 
     const approvalTxResponse = await tokenContract.methods
-      .approve(contract.address, ethers.toBigInt(loan.borrowAmount))
+      .approve(contract.address, ethers.toBigInt(ethers.MaxUint256))
       .send({ from: userAccount })
       .then((receipt) => receipt);
 
-    // Wait for the approval transaction to be mined
-    const receipt = await web3.eth.getTransactionReceipt(
-      approvalTxResponse?.transactionHash
-    );
-
-    if (receipt && receipt.status) {
-      const transaction = prepareContractCall({
-        contract,
-        method:
-          "function approveAndPayLoan(uint256 _id, address _owner, uint256 _amount)",
-        params: [
-          ethers.toBigInt(loan.id),
-          loan.owner,
-          ethers.toBigInt(loan.borrowAmount)
-        ]
-      });
-      return sendTransaction(transaction)
-        .then((res) => res)
-        .catch((e) => {
-          console.log(e);
-          return e;
-        });
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
     }
+
+    const transaction = prepareContractCall({
+      contract,
+      method:
+        "function approveAndPayLoan(uint256 _id, address _owner, uint256 _amount)",
+      params: [
+        ethers.toBigInt(loan.id),
+        loan.owner,
+        ethers.toBigInt(loan.borrowAmount)
+      ]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const deleteLoan = async (_id: string) => {
@@ -206,28 +212,31 @@ export const StateContextProvider = ({ children }: { children: any }) => {
     const userAccount = accounts[0];
 
     const approvalTxResponse = await tokenContract.methods
-      .approve(contract.address, ethers.toBigInt(loan.borrowAmount))
+      .approve(contract.address, ethers.toBigInt(ethers.MaxUint256))
       .send({ from: userAccount })
       .then((receipt) => receipt);
 
-    // Wait for the approval transaction to be mined
-    const receipt = await web3.eth.getTransactionReceipt(
-      approvalTxResponse?.transactionHash
-    );
-
-    if (receipt && receipt.status) {
-      const transaction = prepareContractCall({
-        contract,
-        method: "function repayLoan(uint256 _id) payable",
-        params: [loan.id]
-      });
-      return sendTransaction(transaction)
-        .then((res) => res)
-        .catch((e) => {
-          console.log(e);
-          return e;
-        });
+    if (approvalTxResponse?.transactionHash) {
+      // Wait for the approval transaction to be mined
+      const receipt = await web3.eth.getTransactionReceipt(
+        approvalTxResponse?.transactionHash
+      );
+      if (!receipt || !receipt.status) {
+        throw new Error("Token approval failed");
+      }
     }
+
+    const transaction = prepareContractCall({
+      contract,
+      method: "function repayLoan(uint256 _id) payable",
+      params: [loan.id]
+    });
+    return sendTransaction(transaction)
+      .then((res) => res)
+      .catch((e) => {
+        console.log(e);
+        return e;
+      });
   };
 
   const { data: loans } = useReadContract({
