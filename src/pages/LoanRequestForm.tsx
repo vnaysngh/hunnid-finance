@@ -123,7 +123,7 @@ const TermButton = styled.button<{ active: boolean }>`
   }
 `;
 
-const StartButton = styled.button`
+const StartButton = styled.button<{ disabled?: boolean }>`
   font-family: "Poppins", sans-serif;
   padding: 1rem 2rem;
   border: none;
@@ -188,10 +188,10 @@ const LoanRequestForm = () => {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [selectedType, setSelectedType] = useState<string>("");
-  const { publishLoan, portfolioTokens } = useStateContext();
-  const [tokenList, setTokenList] = useState<object[]>([]);
+  const { publishLoan, portfolioTokens, address } = useStateContext();
+  const [tokenList, setTokenList] = useState<any[]>([]);
 
-  // const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<FormDetails>({
     borrowAmount: "",
     collateralAmount: "",
@@ -201,6 +201,76 @@ const LoanRequestForm = () => {
     selectedTokenB: {}
   });
 
+  useEffect(() => {
+    const setFilteredTokens = () => {
+      setLoading(true);
+      let filteredTokenList;
+
+      if (portfolioTokens && portfolioTokens.length > 0) {
+        filteredTokenList = portfolioTokens.filter((token: any) => {
+          return TokenList.some((portfolioToken: any) => {
+            // Filter out ETH and make sure the token is in our supported list
+            return portfolioToken.name === token.name && token.symbol !== "ETH";
+          });
+        });
+      } else {
+        // If portfolio tokens are empty, use the entire TokenList
+        filteredTokenList = TokenList;
+      }
+
+      setTokenList(filteredTokenList);
+      setLoading(false);
+    };
+    setFilteredTokens();
+  }, [portfolioTokens, address]);
+
+  useEffect(() => {
+    const setSelectedTokens = () => {
+      setLoading(true);
+
+      let borrowToken: any, collateralToken: any;
+
+      if (tokenList.length > 0) {
+        if (tokenList.length === 1 && tokenList[0]?.symbol === "USDC") {
+          borrowToken = tokenList[0];
+          collateralToken = TokenList.find(
+            (token: any) => token.symbol !== "ETH" && token.symbol !== "USDC"
+          );
+        } else {
+          borrowToken = tokenList.find((token: any) => token.symbol === "USDC");
+
+          if (!borrowToken) {
+            borrowToken = tokenList[0];
+          }
+
+          collateralToken = tokenList.find(
+            (token: any) => token !== borrowToken
+          );
+
+          if (!collateralToken) {
+            collateralToken = TokenList.find(
+              (token: any) => token.symbol !== "ETH" && token !== borrowToken
+            );
+          }
+        }
+      } else {
+        const nonEthTokens = TokenList.filter(
+          (token: any) => token.symbol !== "ETH"
+        );
+        borrowToken = nonEthTokens[0];
+        collateralToken = nonEthTokens[1] || nonEthTokens[0];
+      }
+
+      setForm({
+        ...form,
+        selectedTokenA: borrowToken,
+        selectedTokenB: collateralToken
+      });
+      setLoading(false);
+    };
+    if (tokenList) setSelectedTokens();
+  }, [tokenList, address]);
+
   const {
     borrowAmount,
     collateralAmount,
@@ -209,37 +279,6 @@ const LoanRequestForm = () => {
     selectedTokenA,
     selectedTokenB
   } = form;
-
-  useEffect(() => {
-    const setFilteredTokens = () => {
-      const filteredTokenList = portfolioTokens.filter((token: any) => {
-        return TokenList.some((portfolioToken: any) => {
-          return portfolioToken.name === token.name;
-        });
-      });
-
-      setTokenList(filteredTokenList);
-    };
-    if (portfolioTokens?.length) setFilteredTokens();
-  }, [portfolioTokens]);
-
-  useEffect(() => {
-    const setSelectedTokens = () => {
-      const borrowToken = tokenList.find(
-        (token: any) => token.symbol === "USDC"
-      );
-      const collateralToken = tokenList.find(
-        (token: any) => token.symbol === "AERO"
-      );
-
-      setForm({
-        ...form,
-        selectedTokenA: borrowToken,
-        selectedTokenB: collateralToken
-      });
-    };
-    if (tokenList?.length) setSelectedTokens();
-  }, [tokenList]);
 
   const handleCloseModal = () => {
     setError(null);
@@ -272,28 +311,28 @@ const LoanRequestForm = () => {
   };
 
   useEffect(() => {
-    if (!selectedTokenB.price || !borrowAmount || !rate) return;
+    if (!selectedTokenB?.price || !borrowAmount || !rate) return;
     const collateralAmountInUSDC =
       (Number(borrowAmount) * selectedTokenA.price) / 0.6;
-    const collateralAmountInETH = collateralAmountInUSDC / selectedTokenB.price;
+    const collateralAmountInETH =
+      collateralAmountInUSDC / selectedTokenB?.price;
     setForm({
       ...form,
-      collateralAmount: collateralAmountInETH.toFixed(selectedTokenB.decimals)
+      collateralAmount: collateralAmountInETH.toFixed(selectedTokenB?.decimals)
     });
   }, [
     borrowAmount,
     collateralAmount,
     rate,
     duration,
-    selectedTokenB.balance,
     selectedTokenA,
     selectedTokenB
   ]);
 
   const collateralAmountInUSD = useMemo(() => {
-    if (!selectedTokenB.price || !selectedTokenB.balance) return 0;
-    else return Number(selectedTokenB.price) * Number(selectedTokenB.balance);
-  }, [selectedTokenB.balance, selectedTokenB.price]);
+    if (!selectedTokenB?.price || !selectedTokenB?.balance) return 0;
+    else return Number(selectedTokenB?.price) * Number(selectedTokenB?.balance);
+  }, [selectedTokenB, selectedTokenB]);
 
   const totalInterestAmount = useMemo(() => {
     if (!borrowAmount || !rate || !collateralAmount) return 0;
@@ -311,7 +350,14 @@ const LoanRequestForm = () => {
     return collateralRequired / Number(collateralAmount);
   }, [totalRepaymentAmount, collateralAmount]);
 
-  const isError = Number(collateralAmount) > Number(selectedTokenB.balance);
+  const isETHError =
+    (selectedTokenB && selectedTokenB?.symbol === "ETH") ||
+    (selectedTokenA && selectedTokenA?.symbol === "ETH");
+  const isError: any =
+    Number(collateralAmount) > Number(selectedTokenB?.balance) ||
+    error ||
+    !selectedTokenB?.balance;
+  isETHError;
 
   const handleTokenSelectPopup = (type: string) => {
     setIsTokenSelect(true);
@@ -334,187 +380,184 @@ const LoanRequestForm = () => {
     setIsTokenSelect(false);
   };
 
+  if (loading) return <Loader />;
+
   return (
-    <>
-      {!tokenList.length ? (
-        <Loader />
-      ) : (
-        <Container>
-          <Title>Request a Loan</Title>
-          <FormSection>
-            <InputGroup>
-              <Label>I want to borrow</Label>
-              <InputWrapper>
-                <Input
-                  type="number"
-                  name="borrowAmount"
-                  placeholder="100"
-                  value={borrowAmount}
-                  onChange={handleFormFieldsChange}
-                />
-                <TokenSelect
-                  onClick={() => handleTokenSelectPopup("selectedTokenA")}
-                >
-                  <TokenIcon src={selectedTokenA.image} alt="USDC" />
-                  {selectedTokenA?.symbol}
-                </TokenSelect>
-              </InputWrapper>
-              <Balance>
-                Balance:{" "}
-                {selectedTokenA.name
-                  ? `${selectedTokenA.balance.toFixed(3)} ${
-                      selectedTokenA?.symbol
-                    } 
-              ${
-                selectedTokenA.balanceUSD
-                  ? `(~$${selectedTokenA.balanceUSD.toFixed(2)})`
-                  : ""
-              }`
-                  : "N/A"}
-              </Balance>
-            </InputGroup>
-
-            <InputGroup>
-              <Label>Collateral Amount</Label>
-              <InputWrapper>
-                <Input
-                  type="number"
-                  name="collateralAmount"
-                  placeholder="0.25"
-                  value={collateralAmount}
-                  onChange={handleFormFieldsChange}
-                />
-                <TokenSelect
-                  onClick={() => handleTokenSelectPopup("selectedTokenB")}
-                >
-                  <TokenIcon src={selectedTokenB.image} alt="ETH" />
-                  {selectedTokenB?.symbol}
-                </TokenSelect>
-              </InputWrapper>
-              {isError && (
-                <Label style={{ color: "red", marginTop: 5 }}>
-                  Insufficient Balance
-                </Label>
-              )}
-              <Balance>
-                Balance:{" "}
-                {selectedTokenB.name
-                  ? `${selectedTokenB.balance.toFixed(3)} ${
-                      selectedTokenB?.symbol
-                    } 
-              ${
-                selectedTokenB.balanceUSD
-                  ? `(~$${selectedTokenB.balanceUSD.toFixed(2)})`
-                  : ""
-              }`
-                  : "N/A"}
-              </Balance>
-            </InputGroup>
-          </FormSection>
-
-          <InputGroup>
-            <Label>Interest Rate (%)</Label>
-            <InputWrapper>
-              <Input
-                type="number"
-                name="rate"
-                defaultValue="5"
-                step="0.1"
-                min="0"
-                max="100"
-                value={rate}
-                onChange={handleFormFieldsChange}
-              />
-            </InputWrapper>
-          </InputGroup>
-
-          <InputGroup>
-            <Label>Loan Term</Label>
-            <div
-              style={{
-                color: "#b3b3b3",
-                fontSize: "0.875rem",
-                marginBottom: "0.5rem"
-              }}
+    <Container>
+      <Title>Request a Loan</Title>
+      <FormSection>
+        <InputGroup>
+          <Label>I want to borrow</Label>
+          <InputWrapper>
+            <Input
+              type="number"
+              name="borrowAmount"
+              placeholder="100"
+              value={borrowAmount}
+              onChange={handleFormFieldsChange}
+            />
+            <TokenSelect
+              onClick={() => handleTokenSelectPopup("selectedTokenA")}
             >
-              No interest penalty for early repayment
-            </div>
-            <TermButtons>
-              {[7, 14, 30].map((t) => (
-                <TermButton
-                  key={t}
-                  active={duration === t}
-                  onClick={() => setForm({ ...form, duration: t })}
-                >
-                  {t} Days
-                </TermButton>
-              ))}
-            </TermButtons>
-          </InputGroup>
+              <TokenIcon src={selectedTokenA.image} alt="USDC" />
+              {selectedTokenA?.symbol}
+            </TokenSelect>
+          </InputWrapper>
+          <Balance>
+            Balance:{" "}
+            {selectedTokenA.balance
+              ? `${selectedTokenA?.balance?.toFixed(3)} ${
+                  selectedTokenA?.symbol
+                } 
+              ${
+                selectedTokenA?.balanceUSD
+                  ? `(~$${selectedTokenA.balanceUSD?.toFixed(2)})`
+                  : ""
+              }`
+              : `0 ${selectedTokenA?.symbol}`}
+          </Balance>
+        </InputGroup>
 
-          <AdditionalInfoContainer>
-            <InfoItem>
-              <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
-              <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
-            </InfoItem>
-            <InfoItem>
-              <InfoLabel>
-                Liquidation Price ({selectedTokenB.symbol}/
-                {selectedTokenA.symbol})
-              </InfoLabel>
-              <InfoValue style={{ color: "red" }}>
-                {liquidationPrice.toFixed(4)}
-              </InfoValue>
-            </InfoItem>
-            <InfoItem>
-              <InfoLabel>Total Interest Amount</InfoLabel>
-              <InfoValue>
-                {totalInterestAmount} {selectedTokenA.symbol}
-              </InfoValue>
-            </InfoItem>
-            <InfoItem>
-              <InfoLabel>Total Repayment Amount</InfoLabel>
-              <InfoValue>
-                {totalRepaymentAmount} {selectedTokenA.symbol}
-              </InfoValue>
-            </InfoItem>
-            <InfoItem>
-              <InfoLabel>
-                Price ({selectedTokenB.symbol}/{selectedTokenA.symbol})
-              </InfoLabel>
-              <InfoValue>
-                {selectedTokenB.price
-                  ? (selectedTokenB.price / selectedTokenA.price).toFixed(6)
-                  : "N/A"}
-              </InfoValue>
-            </InfoItem>
-          </AdditionalInfoContainer>
+        <InputGroup>
+          <Label>Collateral Amount</Label>
+          <InputWrapper>
+            <Input
+              type="number"
+              name="collateralAmount"
+              placeholder="0.25"
+              value={collateralAmount}
+              onChange={handleFormFieldsChange}
+            />
+            <TokenSelect
+              onClick={() => handleTokenSelectPopup("selectedTokenB")}
+            >
+              <TokenIcon src={selectedTokenB.image} alt="ETH" />
+              {selectedTokenB?.symbol}
+            </TokenSelect>
+          </InputWrapper>
+          {isError && (
+            <Label style={{ color: "red", marginTop: 5 }}>
+              {isETHError
+                ? "ETH is not supported currently. Please choose another token"
+                : "Insufficient Balance"}
+            </Label>
+          )}
+          <Balance>
+            Balance:{" "}
+            {selectedTokenB.balance
+              ? `${selectedTokenB?.balance?.toFixed(3)} ${
+                  selectedTokenB?.symbol
+                } 
+              ${
+                selectedTokenB?.balanceUSD
+                  ? `(~$${selectedTokenB?.balanceUSD?.toFixed(2)})`
+                  : ""
+              }`
+              : `0 ${selectedTokenB?.symbol}`}
+          </Balance>
+        </InputGroup>
+      </FormSection>
 
-          <StartButton onClick={handleSubmit} disabled={isError}>
-            Start Borrowing Now
-          </StartButton>
-
-          <TransactionConfirmationPopup
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            onCloseWithoutSubmit={() => setIsModalOpen(false)}
-            txHash={txHash}
-            error={error}
+      <InputGroup>
+        <Label>Interest Rate (%)</Label>
+        <InputWrapper>
+          <Input
+            type="number"
+            name="rate"
+            defaultValue="5"
+            step="0.1"
+            min="0"
+            max="100"
+            value={rate}
+            onChange={handleFormFieldsChange}
           />
+        </InputWrapper>
+      </InputGroup>
 
-          <TokenSelectionPopup
-            isOpen={isTokenSelect}
-            onClose={() => setIsTokenSelect(false)}
-            onCloseWithoutSubmit={() => setIsTokenSelect(false)}
-            onSelect={handleTokenSelect}
-            tokens={tokenList}
-            selectedTokenA={selectedTokenA.address}
-            selectedTokenB={selectedTokenB.address}
-            type={selectedType}
-          />
-        </Container>
-      )}
-    </>
+      <InputGroup>
+        <Label>Loan Term</Label>
+        <div
+          style={{
+            color: "#b3b3b3",
+            fontSize: "0.875rem",
+            marginBottom: "0.5rem"
+          }}
+        >
+          No interest penalty for early repayment
+        </div>
+        <TermButtons>
+          {[7, 14, 30].map((t) => (
+            <TermButton
+              key={t}
+              active={duration === t}
+              onClick={() => setForm({ ...form, duration: t })}
+            >
+              {t} Days
+            </TermButton>
+          ))}
+        </TermButtons>
+      </InputGroup>
+
+      <AdditionalInfoContainer>
+        <InfoItem>
+          <InfoLabel>Initial LTV (Loan-to-value Ratio)</InfoLabel>
+          <InfoValue style={{ color: "#318d46" }}>60%</InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>
+            Liquidation Price ({selectedTokenB.symbol}/{selectedTokenA.symbol})
+          </InfoLabel>
+          <InfoValue style={{ color: "red" }}>
+            {liquidationPrice.toFixed(4)}
+          </InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>Total Interest Amount</InfoLabel>
+          <InfoValue>
+            {totalInterestAmount} {selectedTokenA.symbol}
+          </InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>Total Repayment Amount</InfoLabel>
+          <InfoValue>
+            {totalRepaymentAmount} {selectedTokenA.symbol}
+          </InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>
+            Price ({selectedTokenB.symbol}/{selectedTokenA.symbol})
+          </InfoLabel>
+          <InfoValue>
+            {selectedTokenB.price
+              ? (selectedTokenB.price / selectedTokenA.price).toFixed(6)
+              : "N/A"}
+          </InfoValue>
+        </InfoItem>
+      </AdditionalInfoContainer>
+
+      <StartButton onClick={handleSubmit} disabled={isError}>
+        Start Borrowing Now
+      </StartButton>
+
+      <TransactionConfirmationPopup
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onCloseWithoutSubmit={() => setIsModalOpen(false)}
+        txHash={txHash}
+        error={error}
+      />
+
+      <TokenSelectionPopup
+        isOpen={isTokenSelect}
+        onClose={() => setIsTokenSelect(false)}
+        onCloseWithoutSubmit={() => setIsTokenSelect(false)}
+        onSelect={handleTokenSelect}
+        tokens={tokenList}
+        selectedTokenA={selectedTokenA.address}
+        selectedTokenB={selectedTokenB.address}
+        type={selectedType}
+      />
+    </Container>
   );
 };
 

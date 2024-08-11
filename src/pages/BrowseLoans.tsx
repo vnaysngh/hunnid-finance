@@ -158,12 +158,75 @@ const StatValue = styled.p<{ color: string }>`
   }
 `;
 
+const RadioSwitchContainer = styled.div`
+  display: flex;
+  background-color: #2c2d30;
+  border-radius: 30px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+`;
+
+const RadioButton = styled.label<{ checked: boolean }>`
+  flex: 1;
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  font-weight: 600;
+  color: ${(props) => (props.checked ? "#ffffff" : "#a0a0a0")};
+  background-color: ${(props) => (props.checked ? "#3a3b3e" : "transparent")};
+
+  &:hover {
+    background-color: ${(props) => (props.checked ? "#3a3b3e" : "#343537")};
+  }
+`;
+
+const HiddenRadio = styled.input.attrs({ type: "radio" })`
+  display: none;
+`;
+
+const CreateLoanButton = styled.button`
+  font-family: "Poppins", sans-serif;
+  background-color: #4caf50;
+  color: #ffffff;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  margin: 2rem auto;
+  display: block;
+
+  &:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+`;
+
+const EmptyStateContainer = styled.div`
+  text-align: center;
+  margin-top: 2rem;
+`;
+
+const EmptyStateText = styled.p`
+  font-size: 1.2rem;
+  color: #a0a0a0;
+  margin-bottom: 1rem;
+`;
+
 const BrowseLoansPage = () => {
   const navigate = useNavigate();
-  // const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("all");
   const [filteredLoanList, setFilteredLoanList] = useState([]);
-  const { parsedLoans: loans } = useStateContext();
+  const { parsedLoans: loans, address } = useStateContext(); // Add address to get the current user's address
   const [stats, setStats] = useState({
     active: 0,
     pending: 0,
@@ -173,6 +236,7 @@ const BrowseLoansPage = () => {
 
   useEffect(() => {
     const getFilteredLoans = () => {
+      setLoading(true);
       const tokenListMap: Record<string, Token> = {};
 
       // Normalize addresses to lowercase and build the map
@@ -180,23 +244,29 @@ const BrowseLoansPage = () => {
         tokenListMap[token.address.toLowerCase()] = token;
       });
 
-      const filteredList = loans.map((loan: Loan) => {
-        // Normalize loan addresses before looking them up
+      const mappedLoans = loans.map((loan: Loan) => {
         const normalizedBorrowToken = loan.borrowToken.toLowerCase();
         const normalizedCollateralToken = loan.collateralToken.toLowerCase();
 
         return {
           ...loan,
-          tokenA: tokenListMap[normalizedBorrowToken] || null, // Set to null if not found
-          tokenB: tokenListMap[normalizedCollateralToken] || null // Set to null if not found
+          tokenA: tokenListMap[normalizedBorrowToken] || null,
+          tokenB: tokenListMap[normalizedCollateralToken] || null
         };
       });
 
-      // Set the filtered list
-      setFilteredLoanList(filteredList);
+      // Apply the filter
+      const filteredLoans =
+        filter === "all"
+          ? mappedLoans
+          : mappedLoans.filter(
+              (loan: Loan) => loan.owner.toLowerCase() === address.toLowerCase()
+            );
 
-      // Calculate stats
-      const newStats = filteredList.reduce(
+      setFilteredLoanList(filteredLoans);
+
+      // Calculate stats based on filtered loans
+      const newStats = filteredLoans.reduce(
         (acc: any, loan: Loan) => {
           if (loan.status === "Active") acc.active++;
           else if (loan.status === "Pending") acc.pending++;
@@ -207,19 +277,18 @@ const BrowseLoansPage = () => {
       );
 
       setStats(newStats);
+      setLoading(false);
     };
 
     if (loans.length) getFilteredLoans();
-  }, [loans]);
-
-  const filteredLoans = filteredLoanList.filter((loan: Loan) => {
-    const matchesSearch = loan.owner.toLowerCase();
-    return matchesSearch;
-  });
+  }, [loans, filter, address]); // Add filter and address to the dependency array
 
   const indexOfLastLoan = currentPage * loansPerPage;
   const indexOfFirstLoan = indexOfLastLoan - loansPerPage;
-  const currentLoans = filteredLoans.slice(indexOfFirstLoan, indexOfLastLoan);
+  const currentLoans = filteredLoanList.slice(
+    indexOfFirstLoan,
+    indexOfLastLoan
+  );
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -227,68 +296,111 @@ const BrowseLoansPage = () => {
     navigate(`/loan/${loanId}`);
   };
 
+  const handleCreateLoan = () => {
+    navigate(`/create`);
+  };
+
+  if (loading) return <Loader />;
+
   return (
     <>
-      {!currentLoans.length ? (
-        <Loader />
-      ) : (
-        <Container>
-          <StatsContainer>
-            <StatBox>
-              <StatTitle>Active Loans</StatTitle>
-              <StatValue color="#4caf50">{stats.active}</StatValue>
-            </StatBox>
-            <StatBox>
-              <StatTitle>Pending Loans</StatTitle>
-              <StatValue color="#ff9800">{stats.pending}</StatValue>
-            </StatBox>
-            <StatBox>
-              <StatTitle>Repiad Loans</StatTitle>
-              <StatValue color="#3498db">{stats.closed}</StatValue>
-            </StatBox>
-          </StatsContainer>
-          <LoanList>
-            {currentLoans.map((loan: any) => (
-              <LoanCard key={loan.id} onClick={() => handleLoanClick(loan.id)}>
-                <LoanDetails>
-                  <Borrower>
-                    Borrower:{" "}
-                    {`${loan.owner.slice(0, 4)}...${loan.owner.slice(-4)}`}
-                  </Borrower>
-                  <StatusBadge status={loan.status}>{loan.status}</StatusBadge>
-                </LoanDetails>
-                <LoanDetails>
-                  <Collateral>
-                    <TokenIcon src={loan.tokenB.image} alt="ETH" />
-                    <CollateralAmount>
-                      {loan.collateralAmount.toFixed(6)} {loan.tokenB.symbol}
-                    </CollateralAmount>
-                  </Collateral>
-                  <Collateral>
-                    <TokenIcon src={loan.tokenA.image} alt="USDC" />
-                    <CollateralAmount>
-                      {loan.borrowAmount} {loan.tokenA.symbol}
-                    </CollateralAmount>
-                  </Collateral>
-                </LoanDetails>
-                <LoanDetails>
-                  <span>Interest Rate: {loan.rate}%</span>
-                  <span>Loan Term: {loan.duration} days</span>
-                </LoanDetails>
-              </LoanCard>
-            ))}
-          </LoanList>
-          <Pagination>
-            {Array.from({
-              length: Math.ceil(filteredLoans.length / loansPerPage)
-            }).map((_, index) => (
-              <PageButton key={index} onClick={() => paginate(index + 1)}>
-                {index + 1}
-              </PageButton>
-            ))}
-          </Pagination>
-        </Container>
-      )}
+      <Container>
+        <StatsContainer>
+          <StatBox>
+            <StatTitle>Active Loans</StatTitle>
+            <StatValue color="#4caf50">{stats.active}</StatValue>
+          </StatBox>
+          <StatBox>
+            <StatTitle>Pending Loans</StatTitle>
+            <StatValue color="#ff9800">{stats.pending}</StatValue>
+          </StatBox>
+          <StatBox>
+            <StatTitle>Repiad Loans</StatTitle>
+            <StatValue color="#3498db">{stats.closed}</StatValue>
+          </StatBox>
+        </StatsContainer>
+
+        <RadioSwitchContainer>
+          <RadioButton checked={filter === "all"}>
+            <HiddenRadio
+              name="loanFilter"
+              value="all"
+              checked={filter === "all"}
+              onChange={() => setFilter("all")}
+            />
+            All Loans
+          </RadioButton>
+          <RadioButton checked={filter === "my"}>
+            <HiddenRadio
+              name="loanFilter"
+              value="my"
+              checked={filter === "my"}
+              onChange={() => setFilter("my")}
+            />
+            My Loans
+          </RadioButton>
+        </RadioSwitchContainer>
+        {!loading && !currentLoans.length ? (
+          <EmptyStateContainer>
+            <EmptyStateText>
+              {filter === "all"
+                ? "No loans available at the moment."
+                : "You haven't created any loans yet."}
+            </EmptyStateText>
+            <CreateLoanButton onClick={handleCreateLoan}>
+              Create New Loan
+            </CreateLoanButton>
+          </EmptyStateContainer>
+        ) : (
+          <>
+            <LoanList>
+              {currentLoans.map((loan: any) => (
+                <LoanCard
+                  key={loan.id}
+                  onClick={() => handleLoanClick(loan.id)}
+                >
+                  <LoanDetails>
+                    <Borrower>
+                      Borrower:{" "}
+                      {`${loan.owner.slice(0, 4)}...${loan.owner.slice(-4)}`}
+                    </Borrower>
+                    <StatusBadge status={loan.status}>
+                      {loan.status}
+                    </StatusBadge>
+                  </LoanDetails>
+                  <LoanDetails>
+                    <Collateral>
+                      <TokenIcon src={loan.tokenB.image} alt="ETH" />
+                      <CollateralAmount>
+                        {loan.collateralAmount.toFixed(6)} {loan.tokenB.symbol}
+                      </CollateralAmount>
+                    </Collateral>
+                    <Collateral>
+                      <TokenIcon src={loan.tokenA.image} alt="USDC" />
+                      <CollateralAmount>
+                        {loan.borrowAmount} {loan.tokenA.symbol}
+                      </CollateralAmount>
+                    </Collateral>
+                  </LoanDetails>
+                  <LoanDetails>
+                    <span>Interest Rate: {loan.rate}%</span>
+                    <span>Loan Term: {loan.duration} days</span>
+                  </LoanDetails>
+                </LoanCard>
+              ))}
+            </LoanList>
+            <Pagination>
+              {Array.from({
+                length: Math.ceil(filteredLoanList.length / loansPerPage)
+              }).map((_, index) => (
+                <PageButton key={index} onClick={() => paginate(index + 1)}>
+                  {index + 1}
+                </PageButton>
+              ))}
+            </Pagination>
+          </>
+        )}
+      </Container>
     </>
   );
 };

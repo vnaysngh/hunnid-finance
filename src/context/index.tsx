@@ -261,7 +261,7 @@ export const StateContextProvider = ({ children }: { children: any }) => {
         endDate: loan.endDate.toString()
       }));
     } else return [];
-  }, [loans]);
+  }, [loans, address]);
 
   return (
     <StateContext.Provider
