@@ -96,7 +96,8 @@ const OnboardingPopup = () => {
         </p>
         <Disclaimer>
           <strong>Disclaimer:</strong> This platform is still in development.
-          Please use it at your own risk and only with small amounts of funds.
+          It's only available on Base and Optimism Mainnet. Please use it at
+          your own risk and only with small amounts of funds.
         </Disclaimer>
       </Content>
       <Button onClick={handleClose}>Got It!</Button>

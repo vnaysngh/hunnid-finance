@@ -125,10 +125,27 @@ const BlockscoutIcon = styled.a`
   cursor: pointer;
 `;
 
+const NetworkBanner = styled.div`
+  background-color: #ffa500; // Warning orange
+  color: #000000;
+  padding: 10px 20px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:hover {
+    background-color: #ff8c00;
+  }
+`;
+
 function App() {
   const location = useLocation();
   const { address, chain } = useStateContext();
-
   const currentRoute = Object.keys(routeMappings).find((route) =>
     location.pathname.includes(route)
   );
@@ -174,6 +191,12 @@ function App() {
         </PartnerLogosContainer>
       </Sidebar>
       <MainContent>
+        <NetworkBanner>
+          <span>
+            Please use only Base Mainnet or Optimism Mainnet for this
+            application. Other networks are not supported.
+          </span>
+        </NetworkBanner>
         <OnboardingPopup />
         <Header>
           <PageTitle>{pageTitle}</PageTitle>
