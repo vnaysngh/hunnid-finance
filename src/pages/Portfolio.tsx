@@ -1,6 +1,9 @@
 import styled from "styled-components";
 import { useStateContext } from "../context";
 import Loader from "../components/Loader";
+import { ConnectButton } from "thirdweb/react";
+import { client } from "../config/client";
+import Wallet from "../components/Wallet";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -110,7 +113,11 @@ const PortfolioDashboard = () => {
 
   return (
     <>
-      {!portfolioTokens.length ? (
+      {!address ? (
+        <Container>
+          <BalanceLabel>Please connect wallet</BalanceLabel>
+        </Container>
+      ) : !portfolioTokens.length && !address ? (
         <Loader />
       ) : (
         <Container>

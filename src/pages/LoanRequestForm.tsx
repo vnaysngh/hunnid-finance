@@ -7,6 +7,7 @@ import TokenSelectionPopup from "../components/TokenSelectPopup";
 import { TokenList } from "../utils/Tokenlist";
 import Loader from "../components/Loader";
 import { useNavigate } from "react-router-dom";
+import Wallet from "../components/Wallet";
 
 const Container = styled.div`
   font-family: "Poppins", sans-serif;
@@ -170,6 +171,12 @@ const InfoValue = styled.div`
   color: #ffffff;
   font-size: 1.25rem;
   font-weight: 600;
+`;
+
+const ConnectWalletContainer = styled.div`
+  width: 100%;
+  margin-top: 2rem;
+  height: 3.5rem;
 `;
 
 export type FormDetails = {
@@ -535,9 +542,15 @@ const LoanRequestForm = () => {
         </InfoItem>
       </AdditionalInfoContainer>
 
-      <StartButton onClick={handleSubmit} disabled={isError}>
-        Start Borrowing Now
-      </StartButton>
+      {address ? (
+        <StartButton onClick={handleSubmit} disabled={isError}>
+          Start Borrowing Now
+        </StartButton>
+      ) : (
+        <ConnectWalletContainer>
+          <Wallet />
+        </ConnectWalletContainer>
+      )}
 
       <TransactionConfirmationPopup
         isOpen={isModalOpen}
