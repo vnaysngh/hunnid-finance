@@ -74,7 +74,11 @@ const CollateralAmount = styled.span`
 
 const StatusBadge = styled.span<{ status: string }>`
   background-color: ${(props) =>
-    props.status === "Pending" ? "#ff9800" : "#4caf50"};
+    props.status === "Pending"
+      ? "#ff9800"
+      : props.status === "Active"
+      ? "#4caf50"
+      : "#3498db"};
   color: #ffffff;
   padding: 0.75rem 1.25rem;
   border-radius: 24px;
@@ -232,7 +236,7 @@ const BrowseLoansPage = () => {
           <StatsContainer>
             <StatBox>
               <StatTitle>Active Loans</StatTitle>
-              <StatValue color="#3498db">{stats.active}</StatValue>
+              <StatValue color="#4caf50">{stats.active}</StatValue>
             </StatBox>
             <StatBox>
               <StatTitle>Pending Loans</StatTitle>
@@ -240,7 +244,7 @@ const BrowseLoansPage = () => {
             </StatBox>
             <StatBox>
               <StatTitle>Repiad Loans</StatTitle>
-              <StatValue color="#4caf50">{stats.closed}</StatValue>
+              <StatValue color="#3498db">{stats.closed}</StatValue>
             </StatBox>
           </StatsContainer>
           <LoanList>
